@@ -13,10 +13,11 @@ export const Home: React.FC = () => {
   const [isAddFormVisible, setIsAddFormVisible] = useState(false);
   const [isCreateOutfitFormVisible, setIsCreateOutfitFormVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<ClothingItem | null>(null);
+  const [editingOutfit, setEditingOutfit] = useState<Outfit | null>(null);
 
   const handleEditOutfit = (outfit: Outfit) => {
-    // TODO: Implement outfit editing
-    console.log('Editing outfit:', outfit);
+    setEditingOutfit(outfit);
+    setIsCreateOutfitFormVisible(true);
   };
 
   const handleDeleteOutfit = (outfitId: string) => {
@@ -61,13 +62,30 @@ export const Home: React.FC = () => {
   };
 
   const handleCreateOutfit = (newOutfit: { name: string; items: string[] }) => {
-    const outfitWithId: Outfit = {
-      ...newOutfit,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString()
-    };
-    setOutfits([...outfits, outfitWithId]);
+    if (editingOutfit) {
+      const outfitWithId: Outfit = {
+        ...newOutfit,
+        id: editingOutfit.id,
+        createdAt: editingOutfit.createdAt
+      };
+      setOutfits(outfits.map(outfit => 
+        outfit.id === editingOutfit.id ? outfitWithId : outfit
+      ));
+      setEditingOutfit(null);
+    } else {
+      const outfitWithId: Outfit = {
+        ...newOutfit,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString()
+      };
+      setOutfits([...outfits, outfitWithId]);
+    }
     setIsCreateOutfitFormVisible(false);
+  };
+
+  const handleCloseOutfitForm = () => {
+    setIsCreateOutfitFormVisible(false);
+    setEditingOutfit(null);
   };
 
   return (
@@ -99,7 +117,10 @@ export const Home: React.FC = () => {
             <h2>Мои наборы</h2>
             <button 
               className={styles.addButton}
-              onClick={() => setIsCreateOutfitFormVisible(true)}
+              onClick={() => {
+                setEditingOutfit(null);
+                setIsCreateOutfitFormVisible(true);
+              }}
             >
               + Создать набор
             </button>
@@ -124,7 +145,8 @@ export const Home: React.FC = () => {
         <CreateOutfitForm
           clothingItems={clothingItems}
           onSubmit={handleCreateOutfit}
-          onClose={() => setIsCreateOutfitFormVisible(false)}
+          onClose={handleCloseOutfitForm}
+          initialData={editingOutfit || undefined}
         />
       )}
     </div>

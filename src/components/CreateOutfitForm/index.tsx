@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { ClothingItem, ClothingType } from '../../types/index';
+import React, { useState, useEffect } from 'react';
+import { ClothingItem, ClothingType, Outfit } from '../../types/index';
 import styles from './CreateOutfitForm.module.css';
 
 interface CreateOutfitFormProps {
   clothingItems: ClothingItem[];
   onSubmit: (outfit: { name: string; items: string[] }) => void;
   onClose: () => void;
+  initialData?: Outfit;
 }
 
 const clothingTypes: ClothingType[] = [
@@ -25,11 +26,22 @@ const clothingTypes: ClothingType[] = [
 export const CreateOutfitForm: React.FC<CreateOutfitFormProps> = ({
   clothingItems,
   onSubmit,
-  onClose
+  onClose,
+  initialData
 }) => {
   const [name, setName] = useState('');
   const [selectedItems, setSelectedItems] = useState<ClothingItem[]>([]);
   const [selectedType, setSelectedType] = useState<ClothingType | 'all'>('all');
+
+  useEffect(() => {
+    if (initialData) {
+      setName(initialData.name);
+      const items = clothingItems.filter(item => 
+        initialData.items.includes(item.id)
+      );
+      setSelectedItems(items);
+    }
+  }, [initialData, clothingItems]);
 
   const filteredItems = selectedType === 'all' 
     ? clothingItems 
@@ -57,7 +69,7 @@ export const CreateOutfitForm: React.FC<CreateOutfitFormProps> = ({
   return (
     <div className={styles.modal}>
       <div className={styles.modalContent}>
-        <h2>Создать набор</h2>
+        <h2>{initialData ? 'Редактировать набор' : 'Создать набор'}</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
             <label htmlFor="name">Название набора:</label>
@@ -106,7 +118,7 @@ export const CreateOutfitForm: React.FC<CreateOutfitFormProps> = ({
               type="submit" 
               disabled={selectedItems.length === 0}
             >
-              Создать набор
+              {initialData ? 'Сохранить' : 'Создать набор'}
             </button>
           </div>
         </form>
