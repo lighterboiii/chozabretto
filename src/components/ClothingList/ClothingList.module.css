@@ -1,17 +1,17 @@
-.clothing-list {
+.clothingList {
   background: #f5f5f5;
   padding: 20px;
   border-radius: 8px;
 }
 
-.items-grid {
+.itemsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 20px;
   margin-top: 20px;
 }
 
-.clothing-item {
+.clothingItem {
   background: white;
   padding: 15px;
   border-radius: 8px;
@@ -20,16 +20,20 @@
   transition: transform 0.2s;
 }
 
-.clothing-item:hover {
+.clothingItem:hover {
   transform: translateY(-2px);
 }
 
-.item-type {
+.itemType {
   font-weight: bold;
   margin-bottom: 5px;
 }
 
-.item-color {
+.itemName {
+  margin-bottom: 5px;
+}
+
+.itemColor {
   color: #666;
   font-size: 0.9em;
 } 

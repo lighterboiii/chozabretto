@@ -10,6 +10,7 @@ export const Home: React.FC = () => {
   const [clothingItems, setClothingItems] = useState<ClothingItem[]>(mockClothingItems);
   const [outfits, setOutfits] = useState<Outfit[]>(mockOutfits);
   const [isAddFormVisible, setIsAddFormVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState<ClothingItem | null>(null);
 
   const handleEditOutfit = (outfit: Outfit) => {
     // TODO: Implement outfit editing
@@ -21,11 +22,32 @@ export const Home: React.FC = () => {
   };
 
   const handleAddClothing = (newItem: Omit<ClothingItem, 'id'>) => {
-    const itemWithId: ClothingItem = {
-      ...newItem,
-      id: Date.now().toString(),
-    };
-    setClothingItems([...clothingItems, itemWithId]);
+    if (editingItem) {
+      // Редактирование существующей вещи
+      setClothingItems(clothingItems.map(item => 
+        item.id === editingItem.id 
+          ? { ...newItem, id: editingItem.id }
+          : item
+      ));
+      setEditingItem(null);
+    } else {
+      // Добавление новой вещи
+      const itemWithId: ClothingItem = {
+        ...newItem,
+        id: Date.now().toString(),
+      };
+      setClothingItems([...clothingItems, itemWithId]);
+    }
+  };
+
+  const handleSelectClothingItem = (item: ClothingItem) => {
+    setEditingItem(item);
+    setIsAddFormVisible(true);
+  };
+
+  const handleCloseForm = () => {
+    setIsAddFormVisible(false);
+    setEditingItem(null);
   };
 
   return (
@@ -39,12 +61,18 @@ export const Home: React.FC = () => {
             <h2>Мои вещи</h2>
             <button 
               className={styles.addButton}
-              onClick={() => setIsAddFormVisible(true)}
+              onClick={() => {
+                setEditingItem(null);
+                setIsAddFormVisible(true);
+              }}
             >
               + Добавить вещь
             </button>
           </div>
-          <ClothingList items={clothingItems} />
+          <ClothingList 
+            items={clothingItems} 
+            onSelectItem={handleSelectClothingItem}
+          />
         </div>
         <OutfitList 
           outfits={outfits}
@@ -55,7 +83,8 @@ export const Home: React.FC = () => {
       {isAddFormVisible && (
         <AddClothingForm
           onSubmit={handleAddClothing}
-          onClose={() => setIsAddFormVisible(false)}
+          onClose={handleCloseForm}
+          initialData={editingItem || undefined}
         />
       )}
     </div>

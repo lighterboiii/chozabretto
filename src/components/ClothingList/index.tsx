@@ -1,26 +1,25 @@
 import React from 'react';
 import { ClothingItem } from '../../types';
-import './ClothingList.module.css';
+import styles from './ClothingList.module.css';
 
 interface ClothingListProps {
   items: ClothingItem[];
-  onSelectItem?: (item: ClothingItem) => void;
+  onSelectItem: (item: ClothingItem) => void;
 }
 
 export const ClothingList: React.FC<ClothingListProps> = ({ items, onSelectItem }) => {
   return (
-    <div className="clothing-list">
-      <h2>Мои вещи</h2>
-      <div className="items-grid">
+    <div className={styles.clothingList}>
+      <div className={styles.itemsGrid}>
         {items.map((item) => (
           <div 
             key={item.id} 
-            className="clothing-item"
-            onClick={() => onSelectItem?.(item)}
+            className={styles.clothingItem}
+            onClick={() => onSelectItem(item)}
           >
-            <div className="item-type">{item.type}</div>
-            <div className="item-name">{item.name}</div>
-            {item.color && <div className="item-color">{item.color}</div>}
+            <div className={styles.itemType}>{item.type}</div>
+            <div className={styles.itemName}>{item.name}</div>
+            {item.color && <div className={styles.itemColor}>{item.color}</div>}
           </div>
         ))}
       </div>

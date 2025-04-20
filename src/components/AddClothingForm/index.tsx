@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ClothingItem, ClothingType } from '../../types';
 import styles from './AddClothingForm.module.css';
 
 interface AddClothingFormProps {
   onSubmit: (item: Omit<ClothingItem, 'id'>) => void;
   onClose: () => void;
+  initialData?: ClothingItem;
 }
 
 const clothingTypes: ClothingType[] = [
@@ -21,10 +22,22 @@ const clothingTypes: ClothingType[] = [
   'shirt'
 ];
 
-export const AddClothingForm: React.FC<AddClothingFormProps> = ({ onSubmit, onClose }) => {
+export const AddClothingForm: React.FC<AddClothingFormProps> = ({ 
+  onSubmit, 
+  onClose,
+  initialData 
+}) => {
   const [name, setName] = useState('');
   const [type, setType] = useState<ClothingType>('t-shirt');
   const [color, setColor] = useState('');
+
+  useEffect(() => {
+    if (initialData) {
+      setName(initialData.name);
+      setType(initialData.type);
+      setColor(initialData.color || '');
+    }
+  }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +52,7 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({ onSubmit, onCl
   return (
     <div className={styles.modal}>
       <div className={styles.modalContent}>
-        <h2>Добавить вещь</h2>
+        <h2>{initialData ? 'Редактировать вещь' : 'Добавить вещь'}</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
             <label htmlFor="name">Название:</label>
@@ -79,7 +92,7 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({ onSubmit, onCl
           </div>
 
           <div className={styles.formActions}>
-            <button type="submit">Добавить</button>
+            <button type="submit">{initialData ? 'Сохранить' : 'Добавить'}</button>
             <button type="button" onClick={onClose}>Отмена</button>
           </div>
         </form>
