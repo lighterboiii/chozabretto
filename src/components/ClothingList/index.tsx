@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClothingItem } from '../../types';
+import { ClothingItem } from '../../types/index';
 import styles from './ClothingList.module.css';
 
 interface ClothingListProps {

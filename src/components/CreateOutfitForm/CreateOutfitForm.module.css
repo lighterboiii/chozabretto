@@ -1,0 +1,123 @@
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.formGroup label {
+  font-weight: 500;
+}
+
+.formGroup input,
+.formGroup select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.itemsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.itemCard {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.itemCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.itemCard.selected {
+  border-color: #007bff;
+  background-color: #f8f9fa;
+}
+
+.itemType {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #007bff;
+}
+
+.itemName {
+  margin-bottom: 5px;
+  font-size: 1.1em;
+}
+
+.itemColor {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.formActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.formActions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.formActions button[type="submit"] {
+  background: #007bff;
+  color: white;
+}
+
+.formActions button[type="button"] {
+  background: #6c757d;
+  color: white;
+}
+
+.formActions button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.formActions button:hover:not(:disabled) {
+  opacity: 0.9;
+} 

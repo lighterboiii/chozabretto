@@ -22,6 +22,6 @@ export interface ClothingItem {
 export interface Outfit {
   id: string;
   name: string;
-  items: ClothingItem[];
+  items: string[];
   createdAt: string;
 } 

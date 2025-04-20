@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ClothingItem, ClothingType } from '../../types';
+import { ClothingItem, ClothingType } from '../../types/index';
 import styles from './AddClothingForm.module.css';
 
 interface AddClothingFormProps {

@@ -1,11 +1,11 @@
-import { ClothingItem, Outfit } from '../types';
+import { ClothingItem, Outfit } from '../types/index';
 
 export const mockClothingItems: ClothingItem[] = [
   {
     id: '1',
     name: 'Синие джинсы',
     type: 'jeans',
-    color: 'blue',
+    color: 'синий'
   },
   {
     id: '2',
@@ -17,7 +17,7 @@ export const mockClothingItems: ClothingItem[] = [
     id: '3',
     name: 'Белая футболка',
     type: 't-shirt',
-    color: 'white',
+    color: 'белый'
   },
   {
     id: '4',
@@ -25,19 +25,25 @@ export const mockClothingItems: ClothingItem[] = [
     type: 'shoes',
     color: 'white',
   },
+  {
+    id: '5',
+    name: 'Черные кеды',
+    type: 'shoes',
+    color: 'черный'
+  }
 ];
 
 export const mockOutfits: Outfit[] = [
   {
     id: '1',
     name: 'Повседневный образ',
-    items: [mockClothingItems[0], mockClothingItems[2], mockClothingItems[3]],
-    createdAt: new Date().toISOString(),
+    items: ['1', '2', '3'],
+    createdAt: '2024-03-20T10:00:00Z'
   },
   {
     id: '2',
     name: 'Весенний образ',
-    items: [mockClothingItems[1], mockClothingItems[2], mockClothingItems[0]],
+    items: ['2', '3', '1'],
     createdAt: new Date().toISOString(),
   },
 ]; 
