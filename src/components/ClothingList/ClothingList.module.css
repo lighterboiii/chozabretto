@@ -24,6 +24,12 @@
   transform: translateY(-2px);
 }
 
+.itemContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .itemType {
   font-weight: bold;
   margin-bottom: 5px;
@@ -36,4 +42,20 @@
 .itemColor {
   color: #666;
   font-size: 0.9em;
+}
+
+.deleteButton {
+  padding: 5px 10px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  align-self: flex-end;
+  margin-top: 10px;
+}
+
+.deleteButton:hover {
+  background: #c82333;
 } 

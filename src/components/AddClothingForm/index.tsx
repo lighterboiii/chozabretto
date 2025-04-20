@@ -5,6 +5,7 @@ import styles from './AddClothingForm.module.css';
 interface AddClothingFormProps {
   onSubmit: (item: Omit<ClothingItem, 'id'>) => void;
   onClose: () => void;
+  onDelete?: () => void;
   initialData?: ClothingItem;
 }
 
@@ -25,6 +26,7 @@ const clothingTypes: ClothingType[] = [
 export const AddClothingForm: React.FC<AddClothingFormProps> = ({ 
   onSubmit, 
   onClose,
+  onDelete,
   initialData 
 }) => {
   const [name, setName] = useState('');
@@ -92,8 +94,17 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({
           </div>
 
           <div className={styles.formActions}>
-            <button type="submit">{initialData ? 'Сохранить' : 'Добавить'}</button>
             <button type="button" onClick={onClose}>Отмена</button>
+            {initialData && onDelete && (
+              <button 
+                type="button" 
+                className={styles.deleteButton}
+                onClick={onDelete}
+              >
+                Удалить
+              </button>
+            )}
+            <button type="submit">{initialData ? 'Сохранить' : 'Добавить'}</button>
           </div>
         </form>
       </div>

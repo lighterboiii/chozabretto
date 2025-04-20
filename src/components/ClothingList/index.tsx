@@ -7,7 +7,10 @@ interface ClothingListProps {
   onSelectItem: (item: ClothingItem) => void;
 }
 
-export const ClothingList: React.FC<ClothingListProps> = ({ items, onSelectItem }) => {
+export const ClothingList: React.FC<ClothingListProps> = ({ 
+  items, 
+  onSelectItem
+}) => {
   return (
     <div className={styles.clothingList}>
       <div className={styles.itemsGrid}>
@@ -17,9 +20,11 @@ export const ClothingList: React.FC<ClothingListProps> = ({ items, onSelectItem 
             className={styles.clothingItem}
             onClick={() => onSelectItem(item)}
           >
-            <div className={styles.itemType}>{item.type}</div>
-            <div className={styles.itemName}>{item.name}</div>
-            {item.color && <div className={styles.itemColor}>{item.color}</div>}
+            <div className={styles.itemContent}>
+              <div className={styles.itemType}>{item.type}</div>
+              <div className={styles.itemName}>{item.name}</div>
+              {item.color && <div className={styles.itemColor}>{item.color}</div>}
+            </div>
           </div>
         ))}
       </div>

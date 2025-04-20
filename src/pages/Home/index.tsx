@@ -45,6 +45,14 @@ export const Home: React.FC = () => {
     setIsAddFormVisible(true);
   };
 
+  const handleDeleteClothingItem = () => {
+    if (editingItem) {
+      setClothingItems(clothingItems.filter(item => item.id !== editingItem.id));
+      setEditingItem(null);
+      setIsAddFormVisible(false);
+    }
+  };
+
   const handleCloseForm = () => {
     setIsAddFormVisible(false);
     setEditingItem(null);
@@ -84,6 +92,7 @@ export const Home: React.FC = () => {
         <AddClothingForm
           onSubmit={handleAddClothing}
           onClose={handleCloseForm}
+          onDelete={editingItem ? handleDeleteClothingItem : undefined}
           initialData={editingItem || undefined}
         />
       )}
