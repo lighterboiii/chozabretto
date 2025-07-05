@@ -3,11 +3,12 @@ import { ClothingItem, ClothingType } from "../../types/index";
 import styles from "./AddClothingForm.module.css";
 
 interface AddClothingFormProps {
-  onSubmit: (item: Omit<ClothingItem, "id">) => void;
+  onSubmit: (item: Omit<ClothingItem, "id">, imageFile?: File) => void
   onClose: () => void;
   onDelete?: () => void;
   initialData?: ClothingItem;
 }
+
 
 const clothingTypes: ClothingType[] = [
   "jeans",
@@ -53,11 +54,14 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      name,
-      type,
-      color: color || undefined,
-    });
+    onSubmit(
+      {
+        name,
+        type,
+        color: color || undefined,
+      },
+      imageFile || undefined
+    );    
     onClose();
   };
 

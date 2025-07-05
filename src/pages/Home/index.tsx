@@ -24,24 +24,26 @@ export const Home: React.FC = () => {
     setOutfits(outfits.filter(outfit => outfit.id !== outfitId));
   };
 
-  const handleAddClothing = (newItem: Omit<ClothingItem, 'id'>) => {
+  const handleAddClothing = (newItem: Omit<ClothingItem, 'id'>, imageFile?: File) => {
+    const imageUrl = imageFile ? URL.createObjectURL(imageFile) : undefined;
+  
     if (editingItem) {
-      // Редактирование существующей вещи
-      setClothingItems(clothingItems.map(item => 
-        item.id === editingItem.id 
-          ? { ...newItem, id: editingItem.id }
+      setClothingItems(clothingItems.map(item =>
+        item.id === editingItem.id
+          ? { ...newItem, id: editingItem.id, imageUrl }
           : item
       ));
       setEditingItem(null);
     } else {
-      // Добавление новой вещи
       const itemWithId: ClothingItem = {
         ...newItem,
         id: Date.now().toString(),
+        imageUrl
       };
       setClothingItems([...clothingItems, itemWithId]);
     }
   };
+  
 
   const handleSelectClothingItem = (item: ClothingItem) => {
     setEditingItem(item);
