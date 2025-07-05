@@ -14,10 +14,10 @@ import {
   createOutfit,
   updateOutfit,
   deleteOutfit,
-  getUserByTelegramId,
   createOrUpdateUser,
 } from "../../api";
 import { CreateOutfitForm } from "../../components/CreateOutfitForm";
+import useTelegram from "../../hooks/useTelegram";
 
 export const Home: React.FC = () => {
   const [clothingItems, setClothingItems] = useState<ClothingItem[]>([]);
@@ -30,18 +30,28 @@ export const Home: React.FC = () => {
   const [editingOutfit, setEditingOutfit] = useState<Outfit | null>(null);
   const [isProfileVisible, setIsProfileVisible] = useState(false);
 
+  const { user: telegramUser, isAvailable: isTelegramAvailable } = useTelegram();
+
   // Загрузка данных при старте
   useEffect(() => {
-    // Имитация получения Telegram ID (в реальном боте это будет приходить от Telegram)
-    const mockTelegramId = 123456789; // Замените на реальный ID из Telegram
-    
     const loadUserData = async () => {
-      try {
-        // Пытаемся получить пользователя по Telegram ID
-        const user = await getUserByTelegramId(mockTelegramId);
-        setCurrentUser(user);
-      } catch (error) {
-        // Если пользователь не найден, создаем нового
+      if (isTelegramAvailable && telegramUser) {
+        try {
+          // Создаем или обновляем пользователя с данными из Telegram
+          const user = await createOrUpdateUser({
+            telegramId: telegramUser.id,
+            firstName: telegramUser.first_name,
+            lastName: telegramUser.last_name,
+            username: telegramUser.username,
+            photoUrl: telegramUser.photo_url
+          });
+          setCurrentUser(user);
+        } catch (error) {
+          console.error('Ошибка создания/обновления пользователя:', error);
+        }
+      } else {
+        // Fallback для разработки без Telegram
+        const mockTelegramId = 123456789;
         try {
           const newUser = await createOrUpdateUser({
             telegramId: mockTelegramId,
@@ -58,7 +68,7 @@ export const Home: React.FC = () => {
     loadUserData();
     fetchClothingList().then(setClothingItems).catch(console.error);
     fetchOutfitsList().then(setOutfits).catch(console.error);
-  }, []);
+  }, [isTelegramAvailable, telegramUser]);
 
   const handleSelectOutfit = (outfit: Outfit) => {
     setEditingOutfit(outfit);

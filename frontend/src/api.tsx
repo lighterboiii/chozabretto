@@ -115,14 +115,6 @@ export async function deleteOutfit(id: string): Promise<void> {
 }
 
 // API функции для пользователей
-export async function getUserByTelegramId(telegramId: number): Promise<User> {
-  const res = await fetch(`${API_BASE}/users/telegram/${telegramId}`);
-  if (!res.ok) {
-    throw new Error(`Ошибка получения пользователя: ${res.status}`);
-  }
-  return res.json();
-}
-
 export async function createOrUpdateUser(userData: {
   telegramId: number;
   firstName?: string;
