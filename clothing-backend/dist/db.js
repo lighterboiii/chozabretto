@@ -21,4 +21,12 @@ db.exec(`
     imageUrl TEXT
   )
 `);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS outfits (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    items TEXT NOT NULL,
+    createdAt TEXT NOT NULL
+  )
+`);
 exports.default = db;

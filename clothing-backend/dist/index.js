@@ -56,6 +56,14 @@ app.use('/uploads', express_1.default.static(UPLOAD_DIR));
  *   color?: string,
  *   imageUrl?: string
  * }
+ *
+ * Outfit:
+ * {
+ *   id: string,
+ *   name: string,
+ *   items: string[],
+ *   createdAt: string
+ * }
  */
 // Получить список одежды
 app.get('/clothing', (req, res) => {
@@ -128,6 +136,83 @@ app.delete('/clothing/:id', (req, res) => {
         }
     }
     const deleteStmt = db_1.default.prepare('DELETE FROM clothing WHERE id = ?');
+    deleteStmt.run(id);
+    res.status(204).send();
+});
+// ===== API для наборов =====
+// Получить список наборов
+app.get('/outfits', (req, res) => {
+    const stmt = db_1.default.prepare('SELECT * FROM outfits ORDER BY createdAt DESC');
+    const outfits = stmt.all();
+    // Преобразуем items из JSON строки в массив
+    const formattedOutfits = outfits.map(outfit => ({
+        ...outfit,
+        items: JSON.parse(outfit.items)
+    }));
+    res.json(formattedOutfits);
+});
+// Создать новый набор
+app.post('/outfits', (req, res) => {
+    const { name, items } = req.body;
+    if (!name || !items || !Array.isArray(items)) {
+        res.status(400).json({ error: 'Name and items array are required' });
+        return;
+    }
+    // Проверяем, что все items существуют в базе
+    const itemsCheckStmt = db_1.default.prepare('SELECT id FROM clothing WHERE id = ?');
+    for (const itemId of items) {
+        const item = itemsCheckStmt.get(itemId);
+        if (!item) {
+            res.status(400).json({ error: `Clothing item with id ${itemId} not found` });
+            return;
+        }
+    }
+    const id = (0, uuid_1.v4)();
+    const createdAt = new Date().toISOString();
+    const itemsJson = JSON.stringify(items);
+    const stmt = db_1.default.prepare('INSERT INTO outfits (id, name, items, createdAt) VALUES (?, ?, ?, ?)');
+    stmt.run(id, name, itemsJson, createdAt);
+    res.status(201).json({ id, name, items, createdAt });
+});
+// Обновить набор по id
+app.put('/outfits/:id', (req, res) => {
+    const { id } = req.params;
+    const { name, items } = req.body;
+    if (!name || !items || !Array.isArray(items)) {
+        res.status(400).json({ error: 'Name and items array are required' });
+        return;
+    }
+    // Проверяем, что набор существует
+    const selectStmt = db_1.default.prepare('SELECT * FROM outfits WHERE id = ?');
+    const outfit = selectStmt.get(id);
+    if (!outfit) {
+        res.status(404).json({ error: 'Outfit not found' });
+        return;
+    }
+    // Проверяем, что все items существуют в базе
+    const itemsCheckStmt = db_1.default.prepare('SELECT id FROM clothing WHERE id = ?');
+    for (const itemId of items) {
+        const item = itemsCheckStmt.get(itemId);
+        if (!item) {
+            res.status(400).json({ error: `Clothing item with id ${itemId} not found` });
+            return;
+        }
+    }
+    const itemsJson = JSON.stringify(items);
+    const updateStmt = db_1.default.prepare('UPDATE outfits SET name = ?, items = ? WHERE id = ?');
+    updateStmt.run(name, itemsJson, id);
+    res.json({ id, name, items, createdAt: outfit.createdAt });
+});
+// Удалить набор по id
+app.delete('/outfits/:id', (req, res) => {
+    const { id } = req.params;
+    const selectStmt = db_1.default.prepare('SELECT * FROM outfits WHERE id = ?');
+    const outfit = selectStmt.get(id);
+    if (!outfit) {
+        res.status(404).json({ error: 'Outfit not found' });
+        return;
+    }
+    const deleteStmt = db_1.default.prepare('DELETE FROM outfits WHERE id = ?');
     deleteStmt.run(id);
     res.status(204).send();
 });
