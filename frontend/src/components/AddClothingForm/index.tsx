@@ -35,6 +35,7 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [color, setColor] = useState("");
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -43,6 +44,25 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({
       setColor(initialData.color || "");
     }
   }, [initialData]);
+
+  // Обработка закрытия по Escape
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
+  // Обработка клика вне модального окна
+  const handleModalClick = (e: React.MouseEvent) => {
+    if (e.target === modalRef.current) {
+      onClose();
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -66,8 +86,8 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({
   };
 
   return (
-    <div className={styles.modal}>
-      <div className={styles.modalContent}>
+    <div className={styles.modal} ref={modalRef} onClick={handleModalClick}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <h2>{initialData ? "Редактировать вещь" : "Добавить вещь"}</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
