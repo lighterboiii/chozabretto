@@ -99,10 +99,13 @@ app.post('/users', (req, res) => {
     const selectStmt = db_1.default.prepare('SELECT * FROM users WHERE telegramId = ?');
     const existingUser = selectStmt.get(telegramId);
     if (existingUser) {
-        // Обновляем существующего пользователя
+        // Обновляем существующего пользователя, но сохраняем photoUrl если он не передан
+        const newPhotoUrl = photoUrl !== undefined ? photoUrl : existingUser.photoUrl;
         const updateStmt = db_1.default.prepare('UPDATE users SET firstName = ?, lastName = ?, username = ?, photoUrl = ? WHERE telegramId = ?');
-        updateStmt.run(firstName || null, lastName || null, username || null, photoUrl || null, telegramId);
-        res.json({ ...existingUser, firstName, lastName, username, photoUrl });
+        updateStmt.run(firstName || null, lastName || null, username || null, newPhotoUrl, telegramId);
+        // После обновления возвращаем актуального пользователя
+        const updatedUser = selectStmt.get(telegramId);
+        res.json(updatedUser);
     }
     else {
         // Создаем нового пользователя
@@ -110,7 +113,9 @@ app.post('/users', (req, res) => {
         const createdAt = new Date().toISOString();
         const insertStmt = db_1.default.prepare('INSERT INTO users (id, telegramId, firstName, lastName, username, photoUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)');
         insertStmt.run(id, telegramId, firstName || null, lastName || null, username || null, photoUrl || null, createdAt);
-        res.status(201).json({ id, telegramId, firstName, lastName, username, photoUrl, createdAt });
+        // После создания возвращаем актуального пользователя
+        const newUser = selectStmt.get(telegramId);
+        res.status(201).json(newUser);
     }
 });
 // Обновить профиль пользователя
