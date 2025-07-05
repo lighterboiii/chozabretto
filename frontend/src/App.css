@@ -1,8 +1,74 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f8f9fa;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Скрываем скроллбар для мобильных устройств */
+.app-content::-webkit-scrollbar {
+  display: none;
+}
+
+.app-content {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Стили для модальных окон */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modalContent {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+  .modalContent {
+    margin: 20px;
+    max-width: calc(100% - 40px);
+  }
+}
+
+/* Старые стили для совместимости */
 .App {
   text-align: center;
-  padding: 20px;
-  min-height: 100vh;
-  background-color: #f0f2f5;
 }
 
 .App-logo {

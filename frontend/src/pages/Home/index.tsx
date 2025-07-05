@@ -19,7 +19,11 @@ import {
 import { CreateOutfitForm } from "../../components/CreateOutfitForm";
 import useTelegram from "../../hooks/useTelegram";
 
-export const Home: React.FC = () => {
+interface HomeProps {
+  currentSection: 'clothing' | 'outfits' | 'profile';
+}
+
+export const Home: React.FC<HomeProps> = ({ currentSection }) => {
   const [clothingItems, setClothingItems] = useState<ClothingItem[]>([]);
   const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -76,8 +80,6 @@ export const Home: React.FC = () => {
     setEditingOutfit(outfit);
     setIsCreateOutfitFormVisible(true);
   };
-
-
 
   const handleDeleteOutfitFromForm = async () => {
     if (!editingOutfit) return;
@@ -174,75 +176,97 @@ export const Home: React.FC = () => {
     setCurrentUser(updatedUser);
   };
 
+  const renderSection = () => {
+    switch (currentSection) {
+      case 'clothing':
+        return (
+          <div className={styles.clothingSection}>
+            <div className={styles.sectionHeader}>
+              <h2>Мои вещи</h2>
+              <button
+                className={styles.addButton}
+                onClick={() => {
+                  setEditingItem(null);
+                  setIsAddFormVisible(true);
+                }}
+              >
+                + Добавить вещь
+              </button>
+            </div>
+            <ClothingList
+              items={clothingItems}
+              onSelectItem={handleSelectClothingItem}
+            />
+          </div>
+        );
+      
+      case 'outfits':
+        return (
+          <div className={styles.outfitSection}>
+            <div className={styles.sectionHeader}>
+              <h2>Мои наборы</h2>
+              <button
+                className={styles.addButton}
+                onClick={() => {
+                  setEditingOutfit(null);
+                  setIsCreateOutfitFormVisible(true);
+                }}
+              >
+                + Создать набор
+              </button>
+            </div>
+            <OutfitList
+              outfits={outfits}
+              clothingItems={clothingItems}
+              onSelectOutfit={handleSelectOutfit}
+            />
+          </div>
+        );
+      
+      case 'profile':
+        return (
+          <div className={styles.profileSection}>
+            {currentUser && (
+              <div className={styles.userInfo}>
+                {currentUser.photoUrl && (
+                  <img
+                    src={`http://localhost:4000${currentUser.photoUrl}`}
+                    alt="Фото профиля"
+                    className={styles.userPhoto}
+                    onError={(e) => {
+                      console.error('Error loading user photo:', currentUser.photoUrl);
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                )}
+                <span className={styles.userName}>
+                  {currentUser.username || 'Пользователь'}
+                </span>
+                <button
+                  className={styles.profileButton}
+                  onClick={() => setIsProfileVisible(true)}
+                >
+                  Редактировать профиль
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className={styles.home}>
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <h1>Мой гардероб</h1>
-          {currentUser && (
-            <div className={styles.userInfo}>
-              {currentUser.photoUrl && (
-                <img
-                  src={`http://localhost:4000${currentUser.photoUrl}`}
-                  alt="Фото профиля"
-                  className={styles.userPhoto}
-                  onError={(e) => {
-                    console.error('Error loading user photo:', currentUser.photoUrl);
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              )}
-              <span className={styles.userName}>
-                {currentUser.username || 'Пользователь'}
-              </span>
-              <button
-                className={styles.profileButton}
-                onClick={() => setIsProfileVisible(true)}
-              >
-                Профиль
-              </button>
-            </div>
-          )}
         </div>
       </header>
       <main className={styles.main}>
-        <div className={styles.clothingSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Мои вещи</h2>
-            <button
-              className={styles.addButton}
-              onClick={() => {
-                setEditingItem(null);
-                setIsAddFormVisible(true);
-              }}
-            >
-              + Добавить вещь
-            </button>
-          </div>
-          <ClothingList
-            items={clothingItems}
-            onSelectItem={handleSelectClothingItem}
-          />
-        </div>
-        <div className={styles.outfitSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Мои наборы</h2>
-            <button
-              className={styles.addButton}
-              onClick={() => {
-                setEditingOutfit(null);
-                setIsCreateOutfitFormVisible(true);
-              }}
-            >
-              + Создать набор
-            </button>
-          </div>
-          <OutfitList
-            outfits={outfits}
-            clothingItems={clothingItems}
-            onSelectOutfit={handleSelectOutfit}
-          />
-        </div>
+        {renderSection()}
       </main>
       {isAddFormVisible && (
         <AddClothingForm

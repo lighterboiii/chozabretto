@@ -2,6 +2,8 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  padding-bottom: 80px; /* место для нижней навигации */
+  min-height: 100vh;
 }
 
 .header {
@@ -50,8 +52,8 @@
 }
 
 .main {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 30px;
 }
 
@@ -77,8 +79,39 @@
 }
 
 .clothingSection,
-.outfitSection {
+.outfitSection,
+.profileSection {
   background: #f5f5f5;
   padding: 20px;
   border-radius: 8px;
+}
+
+/* Мобильные стили */
+@media (max-width: 768px) {
+  .home {
+    padding: 15px;
+    padding-bottom: 80px;
+  }
+  
+  .main {
+    gap: 20px;
+  }
+  
+  .clothingSection,
+  .outfitSection,
+  .profileSection {
+    padding: 15px;
+  }
+  
+  .sectionHeader {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .addButton {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+  }
 } 
