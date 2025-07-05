@@ -18,9 +18,18 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   const [lastName, setLastName] = useState(user.lastName || '');
   const [username, setUsername] = useState(user.username || '');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(user.photoUrl ? `http://localhost:4000${user.photoUrl}` : null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Обновляем превью фото при изменении пользователя
+  useEffect(() => {
+    if (user.photoUrl) {
+      setPhotoPreviewUrl(`http://localhost:4000${user.photoUrl}`);
+    } else {
+      setPhotoPreviewUrl(null);
+    }
+  }, [user.photoUrl]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -95,6 +104,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                   src={photoPreviewUrl}
                   alt="Превью фото"
                   className={styles.previewImage}
+                  onError={(e) => {
+                    console.error('Error loading photo preview:', photoPreviewUrl);
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
               </div>
             )}

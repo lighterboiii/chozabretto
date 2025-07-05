@@ -51,12 +51,13 @@ export const Home: React.FC = () => {
         }
       } else {
         // Fallback для разработки без Telegram
-        const mockTelegramId = 123456789;
+        const mockTelegramId = 172359056;
         try {
           const newUser = await createOrUpdateUser({
             telegramId: mockTelegramId,
             firstName: 'Пользователь',
-            username: 'user_' + mockTelegramId
+            username: 'user_' + mockTelegramId,
+            photoUrl: currentUser?.photoUrl
           });
           setCurrentUser(newUser);
         } catch (createError) {
@@ -68,6 +69,7 @@ export const Home: React.FC = () => {
     loadUserData();
     fetchClothingList().then(setClothingItems).catch(console.error);
     fetchOutfitsList().then(setOutfits).catch(console.error);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTelegramAvailable, telegramUser]);
 
   const handleSelectOutfit = (outfit: Outfit) => {
@@ -184,10 +186,14 @@ export const Home: React.FC = () => {
                   src={`http://localhost:4000${currentUser.photoUrl}`}
                   alt="Фото профиля"
                   className={styles.userPhoto}
+                  onError={(e) => {
+                    console.error('Error loading user photo:', currentUser.photoUrl);
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
               )}
               <span className={styles.userName}>
-                {currentUser.firstName || currentUser.username || 'Пользователь'}
+                {currentUser.username || 'Пользователь'}
               </span>
               <button
                 className={styles.profileButton}
