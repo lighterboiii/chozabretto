@@ -45,7 +45,6 @@ export const OutfitList: React.FC<OutfitListProps> = ({
 
   return (
     <div className={styles.outfitList}>
-      <h2>Мои наборы</h2>
       <div className={styles.outfitsGrid}>
         {outfits.map((outfit) => {
           const coverItems = getOutfitCover(outfit);

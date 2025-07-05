@@ -36,15 +36,7 @@ export const Home: React.FC = () => {
     setIsCreateOutfitFormVisible(true);
   };
 
-  const handleDeleteOutfit = async (outfitId: string) => {
-    try {
-      await deleteOutfit(outfitId);
-      setOutfits(outfits.filter((outfit) => outfit.id !== outfitId));
-    } catch (error) {
-      console.error(error);
-      alert("Ошибка при удалении набора");
-    }
-  };
+
 
   const handleDeleteOutfitFromForm = async () => {
     if (!editingOutfit) return;
