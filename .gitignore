@@ -1,0 +1,6 @@
+# node_modules для фронта и бэка
+/frontend/node_modules
+/backend/node_modules
+
+# файлы загрузок для бэка
+/backend/uploads
