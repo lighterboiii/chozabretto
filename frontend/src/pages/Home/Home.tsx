@@ -3,6 +3,7 @@ import { ClothingList } from "../../components/ClothingList/ClothingList";
 import { AddClothingForm } from "../../components/AddClothingForm/AddClothing";
 import { OutfitList } from "../../components/OutfitList";
 import { UserProfile } from "../../components/UserProfile/UserProfile";
+import { TelegramUserInfo } from "../../components/TelegramUserInfo/TelegramUserInfo";
 import { ClothingItem, Outfit, User } from "../../types/index";
 import styles from "./Home.module.css";
 import {
@@ -17,7 +18,7 @@ import {
   createOrUpdateUser,
 } from "../../api";
 import { CreateOutfitForm } from "../../components/CreateOutfitForm/CreateOutfit";
-import useTelegram from "../../hooks/useTelegram";
+import { useTelegramContext } from "../../contexts/TelegramContext";
 
 interface HomeProps {
   currentSection: 'clothing' | 'outfits' | 'profile';
@@ -33,14 +34,22 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
     useState(false);
   const [editingOutfit, setEditingOutfit] = useState<Outfit | null>(null);
   const [isProfileVisible, setIsProfileVisible] = useState(false);
-  console.log(currentUser);
-  const { user: telegramUser, isAvailable: isTelegramAvailable } = useTelegram();
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const { 
+    user: telegramUser, 
+    isAvailable: isTelegramAvailable, 
+    showAlert, 
+    showConfirm, 
+    hapticSelection,
+    hapticNotification 
+  } = useTelegramContext();
 
   // Загрузка данных при старте
   useEffect(() => {
     const loadUserData = async () => {
-      if (isTelegramAvailable && telegramUser) {
-        try {
+      try {
+        if (isTelegramAvailable && telegramUser) {
           // Создаем или обновляем пользователя с данными из Telegram
           const user = await createOrUpdateUser({
             telegramId: telegramUser.id,
@@ -50,13 +59,10 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
             photoUrl: telegramUser.photo_url
           });
           setCurrentUser(user);
-        } catch (error) {
-          console.error('Ошибка создания/обновления пользователя:', error);
-        }
-      } else {
-        // Fallback для разработки без Telegram
-        const mockTelegramId = 172359056;
-        try {
+          hapticNotification('success');
+        } else {
+          // Fallback для разработки без Telegram
+          const mockTelegramId = 172359056;
           const newUser = await createOrUpdateUser({
             telegramId: mockTelegramId,
             firstName: 'Пользователь',
@@ -64,33 +70,60 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
             photoUrl: currentUser?.photoUrl
           });
           setCurrentUser(newUser);
-        } catch (createError) {
-          console.error('Ошибка создания пользователя:', createError);
         }
+      } catch (error) {
+        console.error('Ошибка создания/обновления пользователя:', error);
+        await showAlert('Ошибка при загрузке профиля пользователя');
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadUserData();
-    fetchClothingList(currentUser?.telegramId.toString()).then(setClothingItems).catch(console.error);
-    fetchOutfitsList().then(setOutfits).catch(console.error);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isTelegramAvailable, telegramUser]);
+  }, [isTelegramAvailable, telegramUser, hapticNotification, showAlert, currentUser?.photoUrl]);
+
+  // Загрузка одежды и наборов
+  useEffect(() => {
+    if (currentUser?.telegramId) {
+      fetchClothingList(currentUser.telegramId.toString())
+        .then(setClothingItems)
+        .catch(async (error) => {
+          console.error('Ошибка загрузки одежды:', error);
+          await showAlert('Ошибка при загрузке одежды');
+        });
+      
+      fetchOutfitsList()
+        .then(setOutfits)
+        .catch(async (error) => {
+          console.error('Ошибка загрузки наборов:', error);
+          await showAlert('Ошибка при загрузке наборов');
+        });
+    }
+  }, [currentUser?.telegramId, showAlert]);
 
   const handleSelectOutfit = (outfit: Outfit) => {
     setEditingOutfit(outfit);
     setIsCreateOutfitFormVisible(true);
+    hapticSelection();
   };
 
   const handleDeleteOutfitFromForm = async () => {
     if (!editingOutfit) return;
+    
+    const confirmed = await showConfirm('Вы уверены, что хотите удалить этот набор?');
+    if (!confirmed) return;
+    
     try {
       await deleteOutfit(editingOutfit.id);
       setOutfits(outfits.filter((outfit) => outfit.id !== editingOutfit.id));
       setEditingOutfit(null);
       setIsCreateOutfitFormVisible(false);
+      hapticNotification('success');
+      await showAlert('Набор успешно удален');
     } catch (error) {
       console.error(error);
-      alert("Ошибка при удалении набора");
+      hapticNotification('error');
+      await showAlert('Ошибка при удалении набора');
     }
   };
 
@@ -110,14 +143,19 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
           items.map((i) => (i.id === updated.id ? updated : i))
         );
         setEditingItem(null);
+        hapticNotification('success');
+        await showAlert('Вещь успешно обновлена');
       } else {
         const added = await createClothing(newItem, imageFile, currentUser?.telegramId.toString());
         setClothingItems((items) => [...items, added]);
+        hapticNotification('success');
+        await showAlert('Вещь успешно добавлена');
       }
       setIsAddFormVisible(false);
     } catch (error) {
       console.error(error);
-      alert("Ошибка при сохранении вещи");
+      hapticNotification('error');
+      await showAlert('Ошибка при сохранении вещи');
     }
   };
 
@@ -125,19 +163,27 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
   const handleSelectClothingItem = (item: ClothingItem) => {
     setEditingItem(item);
     setIsAddFormVisible(true);
+    hapticSelection();
   };
 
   // Удаление вещи
   const handleDeleteClothingItem = async () => {
     if (!editingItem) return;
+    
+    const confirmed = await showConfirm('Вы уверены, что хотите удалить эту вещь?');
+    if (!confirmed) return;
+    
     try {
       await deleteClothing(editingItem.id);
       setClothingItems((items) => items.filter((i) => i.id !== editingItem.id));
       setEditingItem(null);
       setIsAddFormVisible(false);
+      hapticNotification('success');
+      await showAlert('Вещь успешно удалена');
     } catch (error) {
       console.error(error);
-      alert("Ошибка при удалении вещи");
+      hapticNotification('error');
+      await showAlert('Ошибка при удалении вещи');
     }
   };
 
@@ -156,14 +202,19 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
           )
         );
         setEditingOutfit(null);
+        hapticNotification('success');
+        await showAlert('Набор успешно обновлен');
       } else {
         const created = await createOutfit(newOutfit);
         setOutfits([...outfits, created]);
+        hapticNotification('success');
+        await showAlert('Набор успешно создан');
       }
       setIsCreateOutfitFormVisible(false);
     } catch (error) {
       console.error(error);
-      alert("Ошибка при сохранении набора");
+      hapticNotification('error');
+      await showAlert('Ошибка при сохранении набора');
     }
   };
 
@@ -177,17 +228,27 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
   };
 
   const renderSection = () => {
+    if (isLoading) {
+      return (
+        <div className={styles.loadingSection}>
+          <div className={styles.loadingSpinner}></div>
+          <p>Загрузка...</p>
+        </div>
+      );
+    }
+
     switch (currentSection) {
       case 'clothing':
         return (
           <div className={styles.clothingSection}>
             <div className={styles.sectionHeader}>
-              <h2>Мои вещи</h2>
+              <h2 className="section-header">Мои вещи</h2>
               <button
-                className={styles.addButton}
+                className="telegram-button"
                 onClick={() => {
                   setEditingItem(null);
                   setIsAddFormVisible(true);
+                  hapticSelection();
                 }}
               >
                 + Добавить вещь
@@ -204,12 +265,13 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
         return (
           <div className={styles.outfitSection}>
             <div className={styles.sectionHeader}>
-              <h2>Мои наборы</h2>
+              <h2 className="section-header">Мои наборы</h2>
               <button
-                className={styles.addButton}
+                className="telegram-button"
                 onClick={() => {
                   setEditingOutfit(null);
                   setIsCreateOutfitFormVisible(true);
+                  hapticSelection();
                 }}
               >
                 + Создать набор
@@ -226,25 +288,37 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
       case 'profile':
         return (
           <div className={styles.profileSection}>
+            <TelegramUserInfo />
+            
             {currentUser && (
-              <div className={styles.userInfo}>
-                {currentUser.photoUrl && (
-                  <img
-                    src={`http://localhost:4000${currentUser.photoUrl}`}
-                    alt="Фото профиля"
-                    className={styles.userPhoto}
-                    onError={(e) => {
-                      console.error('Error loading user photo:', currentUser.photoUrl);
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                )}
-                <span className={styles.userName}>
-                  {currentUser.username || 'Пользователь'}
-                </span>
+              <div className="telegram-card">
+                <div className={styles.userInfo}>
+                  {currentUser.photoUrl && (
+                    <img
+                      src={`http://localhost:4000${currentUser.photoUrl}`}
+                      alt="Фото профиля"
+                      className={styles.userPhoto}
+                      onError={(e) => {
+                        console.error('Error loading user photo:', currentUser.photoUrl);
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  )}
+                  <div className={styles.userDetails}>
+                    <span className={styles.userName}>
+                      {currentUser.firstName || currentUser.username || 'Пользователь'}
+                    </span>
+                    {currentUser.username && (
+                      <span className={styles.username}>@{currentUser.username}</span>
+                    )}
+                  </div>
+                </div>
                 <button
-                  className={styles.profileButton}
-                  onClick={() => setIsProfileVisible(true)}
+                  className="telegram-button"
+                  onClick={() => {
+                    setIsProfileVisible(true);
+                    hapticSelection();
+                  }}
                 >
                   Редактировать профиль
                 </button>

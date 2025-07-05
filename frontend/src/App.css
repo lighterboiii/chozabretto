@@ -12,15 +12,47 @@ body {
   background-color: #f8f9fa;
 }
 
+/* Telegram Web App Theme Variables */
+:root {
+  --tg-theme-bg-color: #ffffff;
+  --tg-theme-text-color: #000000;
+  --tg-theme-hint-color: #999999;
+  --tg-theme-link-color: #2481cc;
+  --tg-theme-button-color: #2481cc;
+  --tg-theme-button-text-color: #ffffff;
+  --tg-theme-secondary-bg-color: #f1f1f1;
+  --tg-theme-header-bg-color: #ffffff;
+  --tg-theme-accent-text-color: #2481cc;
+  --tg-theme-section-bg-color: #ffffff;
+  --tg-theme-section-header-text-color: #000000;
+  --tg-theme-subtitle-text-color: #999999;
+  --tg-theme-destructive-text-color: #ff3b30;
+  --tg-theme-bottom-bar-bg-color: #ffffff;
+  --tg-theme-section-separator-color: #e5e5e5;
+}
+
 .app {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  background-color: var(--tg-theme-bg-color);
+  color: var(--tg-theme-text-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Адаптация под Telegram Web App */
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 .app-content {
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 60px); /* Высота минус нижняя навигация */
 }
 
 /* Скрываем скроллбар для мобильных устройств */
@@ -185,4 +217,120 @@ body {
   background: #f8f9fa;
   margin: 5px 0;
   border-radius: 4px;
+}
+
+/* Стили для кнопок в стиле Telegram */
+.telegram-button {
+  background-color: var(--tg-theme-button-color);
+  color: var(--tg-theme-button-text-color);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.telegram-button:hover {
+  opacity: 0.9;
+}
+
+.telegram-button:active {
+  opacity: 0.8;
+}
+
+.telegram-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Стили для input полей в стиле Telegram */
+.telegram-input {
+  background-color: var(--tg-theme-secondary-bg-color);
+  color: var(--tg-theme-text-color);
+  border: 1px solid var(--tg-theme-section-separator-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.telegram-input:focus {
+  outline: none;
+  border-color: var(--tg-theme-link-color);
+}
+
+.telegram-input::placeholder {
+  color: var(--tg-theme-hint-color);
+}
+
+/* Стили для ссылок в стиле Telegram */
+.telegram-link {
+  color: var(--tg-theme-link-color);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.telegram-link:hover {
+  opacity: 0.8;
+}
+
+/* Стили для подсказок */
+.telegram-hint {
+  color: var(--tg-theme-hint-color);
+  font-size: 14px;
+}
+
+/* Стили для заголовков секций */
+.section-header {
+  color: var(--tg-theme-section-header-text-color);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* Стили для карточек */
+.telegram-card {
+  background-color: var(--tg-theme-section-bg-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Стили для разделителей */
+.telegram-separator {
+  height: 1px;
+  background-color: var(--tg-theme-section-separator-color);
+  margin: 16px 0;
+}
+
+/* Адаптация для темной темы */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --tg-theme-bg-color: #1c1c1e;
+    --tg-theme-text-color: #ffffff;
+    --tg-theme-hint-color: #8e8e93;
+    --tg-theme-secondary-bg-color: #2c2c2e;
+    --tg-theme-header-bg-color: #1c1c1e;
+    --tg-theme-section-bg-color: #2c2c2e;
+    --tg-theme-section-header-text-color: #ffffff;
+    --tg-theme-subtitle-text-color: #8e8e93;
+    --tg-theme-bottom-bar-bg-color: #1c1c1e;
+    --tg-theme-section-separator-color: #38383a;
+  }
+}
+
+/* Поддержка безопасных зон для iPhone */
+@supports (padding: max(0px)) {
+  .app {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+    padding-top: max(env(safe-area-inset-top), 0px);
+    padding-left: max(env(safe-area-inset-left), 0px);
+    padding-right: max(env(safe-area-inset-right), 0px);
+  }
 }

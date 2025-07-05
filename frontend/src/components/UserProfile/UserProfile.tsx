@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../../types/index';
 import { updateUserProfile } from '../../api';
+import { useTelegramContext } from '../../contexts/TelegramContext';
 import styles from './UserProfile.module.css';
 
 interface UserProfileProps {
@@ -14,9 +15,10 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   onClose,
   onUpdate
 }) => {
-  const [firstName, setFirstName] = useState(user.firstName || '');
-  const [lastName, setLastName] = useState(user.lastName || '');
-  const [username, setUsername] = useState(user.username || '');
+  const { user: telegramUser, showAlert, showConfirm, hapticSelection } = useTelegramContext();
+  const [firstName, setFirstName] = useState(user.firstName || telegramUser?.first_name || '');
+  const [lastName, setLastName] = useState(user.lastName || telegramUser?.last_name || '');
+  const [username, setUsername] = useState(user.username || telegramUser?.username || '');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,10 +28,12 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   useEffect(() => {
     if (user.photoUrl) {
       setPhotoPreviewUrl(`http://localhost:4000${user.photoUrl}`);
+    } else if (telegramUser?.photo_url) {
+      setPhotoPreviewUrl(telegramUser.photo_url);
     } else {
       setPhotoPreviewUrl(null);
     }
-  }, [user.photoUrl]);
+  }, [user.photoUrl, telegramUser?.photo_url]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -62,6 +66,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
       setPhotoFile(file);
       const previewUrl = URL.createObjectURL(file);
       setPhotoPreviewUrl(previewUrl);
+      hapticSelection();
     }
   };
 
@@ -76,19 +81,44 @@ export const UserProfile: React.FC<UserProfileProps> = ({
         photoFile || undefined
       );
       onUpdate(updatedUser);
+      await showAlert('Профиль успешно обновлен!');
       onClose();
     } catch (error) {
       console.error(error);
-      alert('Ошибка при обновлении профиля');
+      await showAlert('Ошибка при обновлении профиля');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (firstName !== user.firstName || lastName !== user.lastName || username !== user.username || photoFile) {
+      const confirmed = await showConfirm('У вас есть несохраненные изменения. Вы уверены, что хотите закрыть?');
+      if (confirmed) {
+        onClose();
+      }
+    } else {
+      onClose();
     }
   };
 
   return (
     <div className={styles.modal} ref={modalRef} onClick={handleModalClick}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <h2>Профиль пользователя</h2>
+        <h2 className="section-header">Профиль пользователя</h2>
+        
+        {telegramUser && (
+          <div className="telegram-card">
+            <h3>Данные Telegram</h3>
+            <p><strong>ID:</strong> {telegramUser.id}</p>
+            <p><strong>Имя:</strong> {telegramUser.first_name}</p>
+            {telegramUser.last_name && <p><strong>Фамилия:</strong> {telegramUser.last_name}</p>}
+            {telegramUser.username && <p><strong>Username:</strong> @{telegramUser.username}</p>}
+            {telegramUser.is_premium && <p><strong>Premium:</strong> ✅</p>}
+            {telegramUser.language_code && <p><strong>Язык:</strong> {telegramUser.language_code}</p>}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.photoSection}>
             <label htmlFor="photo">Фотография профиля:</label>
@@ -97,6 +127,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               type="file"
               accept="image/*"
               onChange={handlePhotoChange}
+              className="telegram-button"
             />
             {photoPreviewUrl && (
               <div className={styles.photoPreview}>
@@ -121,6 +152,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="Введите имя"
+              className="telegram-input"
             />
           </div>
 
@@ -132,6 +164,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Введите фамилию"
+              className="telegram-input"
             />
           </div>
 
@@ -143,14 +176,24 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Введите никнейм"
+              className="telegram-input"
             />
           </div>
 
           <div className={styles.formActions}>
-            <button type="button" onClick={onClose} disabled={isLoading}>
+            <button 
+              type="button" 
+              onClick={handleCancel} 
+              disabled={isLoading}
+              className="telegram-button"
+            >
               Отмена
             </button>
-            <button type="submit" disabled={isLoading}>
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="telegram-button"
+            >
               {isLoading ? 'Сохранение...' : 'Сохранить'}
             </button>
           </div>
