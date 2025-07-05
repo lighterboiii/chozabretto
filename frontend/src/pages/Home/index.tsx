@@ -1,93 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ClothingList } from '../../components/ClothingList';
-import { OutfitList } from '../../components/OutfitList';
 import { AddClothingForm } from '../../components/AddClothingForm';
-import { CreateOutfitForm } from '../../components/CreateOutfitForm';
-import { mockClothingItems, mockOutfits } from '../../mocks/data';
-import { ClothingItem, Outfit } from '../../types/index';
+import { ClothingItem } from '../../types/index';
 import styles from './Home.module.css';
+import { fetchClothingList, createClothing, updateClothing, deleteClothing } from '../../api';
 
 export const Home: React.FC = () => {
-  const [clothingItems, setClothingItems] = useState<ClothingItem[]>(mockClothingItems);
-  const [outfits, setOutfits] = useState<Outfit[]>(mockOutfits);
+  const [clothingItems, setClothingItems] = useState<ClothingItem[]>([]);
   const [isAddFormVisible, setIsAddFormVisible] = useState(false);
-  const [isCreateOutfitFormVisible, setIsCreateOutfitFormVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<ClothingItem | null>(null);
-  const [editingOutfit, setEditingOutfit] = useState<Outfit | null>(null);
 
-  const handleEditOutfit = (outfit: Outfit) => {
-    setEditingOutfit(outfit);
-    setIsCreateOutfitFormVisible(true);
-  };
+  // Загрузка данных при старте
+  useEffect(() => {
+    fetchClothingList()
+      .then(setClothingItems)
+      .catch(console.error);
+  }, []);
 
-  const handleDeleteOutfit = (outfitId: string) => {
-    setOutfits(outfits.filter(outfit => outfit.id !== outfitId));
-  };
-
-  const handleAddClothing = (newItem: Omit<ClothingItem, 'id'>, imageFile?: File) => {
-    const imageUrl = imageFile ? URL.createObjectURL(imageFile) : undefined;
-  
-    if (editingItem) {
-      setClothingItems(clothingItems.map(item =>
-        item.id === editingItem.id
-          ? { ...newItem, id: editingItem.id, imageUrl }
-          : item
-      ));
-      setEditingItem(null);
-    } else {
-      const itemWithId: ClothingItem = {
-        ...newItem,
-        id: Date.now().toString(),
-        imageUrl
-      };
-      setClothingItems([...clothingItems, itemWithId]);
+  // Добавление или редактирование вещи
+  const handleAddClothing = async (newItem: Omit<ClothingItem, 'id'>, imageFile?: File) => {
+    try {
+      if (editingItem) {
+        const updated = await updateClothing(editingItem.id, newItem, imageFile);
+        setClothingItems(items => items.map(i => i.id === updated.id ? updated : i));
+        setEditingItem(null);
+      } else {
+        const added = await createClothing(newItem, imageFile);
+        setClothingItems(items => [...items, added]);
+      }
+      setIsAddFormVisible(false);
+    } catch (error) {
+      console.error(error);
+      alert('Ошибка при сохранении вещи');
     }
   };
-  
 
+  // Выбор вещи для редактирования
   const handleSelectClothingItem = (item: ClothingItem) => {
     setEditingItem(item);
     setIsAddFormVisible(true);
   };
 
-  const handleDeleteClothingItem = () => {
-    if (editingItem) {
-      setClothingItems(clothingItems.filter(item => item.id !== editingItem.id));
+  // Удаление вещи
+  const handleDeleteClothingItem = async () => {
+    if (!editingItem) return;
+    try {
+      await deleteClothing(editingItem.id);
+      setClothingItems(items => items.filter(i => i.id !== editingItem.id));
       setEditingItem(null);
       setIsAddFormVisible(false);
+    } catch (error) {
+      console.error(error);
+      alert('Ошибка при удалении вещи');
     }
   };
 
   const handleCloseForm = () => {
     setIsAddFormVisible(false);
     setEditingItem(null);
-  };
-
-  const handleCreateOutfit = (newOutfit: { name: string; items: string[] }) => {
-    if (editingOutfit) {
-      const outfitWithId: Outfit = {
-        ...newOutfit,
-        id: editingOutfit.id,
-        createdAt: editingOutfit.createdAt
-      };
-      setOutfits(outfits.map(outfit => 
-        outfit.id === editingOutfit.id ? outfitWithId : outfit
-      ));
-      setEditingOutfit(null);
-    } else {
-      const outfitWithId: Outfit = {
-        ...newOutfit,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString()
-      };
-      setOutfits([...outfits, outfitWithId]);
-    }
-    setIsCreateOutfitFormVisible(false);
-  };
-
-  const handleCloseOutfitForm = () => {
-    setIsCreateOutfitFormVisible(false);
-    setEditingOutfit(null);
   };
 
   return (
@@ -114,26 +84,6 @@ export const Home: React.FC = () => {
             onSelectItem={handleSelectClothingItem}
           />
         </div>
-        <div className={styles.outfitSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Мои наборы</h2>
-            <button 
-              className={styles.addButton}
-              onClick={() => {
-                setEditingOutfit(null);
-                setIsCreateOutfitFormVisible(true);
-              }}
-            >
-              + Создать набор
-            </button>
-          </div>
-          <OutfitList 
-            outfits={outfits}
-            clothingItems={clothingItems}
-            onEditOutfit={handleEditOutfit}
-            onDeleteOutfit={handleDeleteOutfit}
-          />
-        </div>
       </main>
       {isAddFormVisible && (
         <AddClothingForm
@@ -143,14 +93,6 @@ export const Home: React.FC = () => {
           initialData={editingItem || undefined}
         />
       )}
-      {isCreateOutfitFormVisible && (
-        <CreateOutfitForm
-          clothingItems={clothingItems}
-          onSubmit={handleCreateOutfit}
-          onClose={handleCloseOutfitForm}
-          initialData={editingOutfit || undefined}
-        />
-      )}
     </div>
   );
-}; 
+};
