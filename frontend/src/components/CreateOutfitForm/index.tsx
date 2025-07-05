@@ -6,6 +6,7 @@ interface CreateOutfitFormProps {
   clothingItems: ClothingItem[];
   onSubmit: (outfit: { name: string; items: string[] }) => void;
   onClose: () => void;
+  onDelete?: () => void;
   initialData?: Outfit;
 }
 
@@ -27,6 +28,7 @@ export const CreateOutfitForm: React.FC<CreateOutfitFormProps> = ({
   clothingItems,
   onSubmit,
   onClose,
+  onDelete,
   initialData
 }) => {
   const [name, setName] = useState('');
@@ -114,6 +116,15 @@ export const CreateOutfitForm: React.FC<CreateOutfitFormProps> = ({
 
           <div className={styles.formActions}>
             <button type="button" onClick={onClose}>Отмена</button>
+            {initialData && onDelete && (
+              <button
+                type="button"
+                className={styles.deleteButton}
+                onClick={onDelete}
+              >
+                Удалить
+              </button>
+            )}
             <button 
               type="submit" 
               disabled={selectedItems.length === 0}

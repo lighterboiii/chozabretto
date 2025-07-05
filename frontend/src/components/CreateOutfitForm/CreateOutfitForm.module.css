@@ -113,6 +113,10 @@
   color: white;
 }
 
+.deleteButton {
+  background: #dc3545 !important;
+}
+
 .formActions button:disabled {
   background: #ccc;
   cursor: not-allowed;

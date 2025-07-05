@@ -9,13 +9,16 @@ import {
   createClothing,
   updateClothing,
   deleteClothing,
+  fetchOutfitsList,
+  createOutfit,
+  updateOutfit,
+  deleteOutfit,
 } from "../../api";
-import { mockOutfits } from "../../mocks/data";
 import { CreateOutfitForm } from "../../components/CreateOutfitForm";
 
 export const Home: React.FC = () => {
   const [clothingItems, setClothingItems] = useState<ClothingItem[]>([]);
-  const [outfits, setOutfits] = useState<Outfit[]>(mockOutfits);
+  const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [isAddFormVisible, setIsAddFormVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<ClothingItem | null>(null);
   const [isCreateOutfitFormVisible, setIsCreateOutfitFormVisible] =
@@ -25,15 +28,35 @@ export const Home: React.FC = () => {
   // Загрузка данных при старте
   useEffect(() => {
     fetchClothingList().then(setClothingItems).catch(console.error);
+    fetchOutfitsList().then(setOutfits).catch(console.error);
   }, []);
 
-  const handleEditOutfit = (outfit: Outfit) => {
+  const handleSelectOutfit = (outfit: Outfit) => {
     setEditingOutfit(outfit);
     setIsCreateOutfitFormVisible(true);
   };
 
-  const handleDeleteOutfit = (outfitId: string) => {
-    setOutfits(outfits.filter((outfit) => outfit.id !== outfitId));
+  const handleDeleteOutfit = async (outfitId: string) => {
+    try {
+      await deleteOutfit(outfitId);
+      setOutfits(outfits.filter((outfit) => outfit.id !== outfitId));
+    } catch (error) {
+      console.error(error);
+      alert("Ошибка при удалении набора");
+    }
+  };
+
+  const handleDeleteOutfitFromForm = async () => {
+    if (!editingOutfit) return;
+    try {
+      await deleteOutfit(editingOutfit.id);
+      setOutfits(outfits.filter((outfit) => outfit.id !== editingOutfit.id));
+      setEditingOutfit(null);
+      setIsCreateOutfitFormVisible(false);
+    } catch (error) {
+      console.error(error);
+      alert("Ошибка при удалении набора");
+    }
   };
 
   // Добавление или редактирование вещи
@@ -88,28 +111,25 @@ export const Home: React.FC = () => {
     setEditingItem(null);
   };
 
-  const handleCreateOutfit = (newOutfit: { name: string; items: string[] }) => {
-    if (editingOutfit) {
-      const outfitWithId: Outfit = {
-        ...newOutfit,
-        id: editingOutfit.id,
-        createdAt: editingOutfit.createdAt,
-      };
-      setOutfits(
-        outfits.map((outfit) =>
-          outfit.id === editingOutfit.id ? outfitWithId : outfit
-        )
-      );
-      setEditingOutfit(null);
-    } else {
-      const outfitWithId: Outfit = {
-        ...newOutfit,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-      };
-      setOutfits([...outfits, outfitWithId]);
+  const handleCreateOutfit = async (newOutfit: { name: string; items: string[] }) => {
+    try {
+      if (editingOutfit) {
+        const updated = await updateOutfit(editingOutfit.id, newOutfit);
+        setOutfits(
+          outfits.map((outfit) =>
+            outfit.id === editingOutfit.id ? updated : outfit
+          )
+        );
+        setEditingOutfit(null);
+      } else {
+        const created = await createOutfit(newOutfit);
+        setOutfits([...outfits, created]);
+      }
+      setIsCreateOutfitFormVisible(false);
+    } catch (error) {
+      console.error(error);
+      alert("Ошибка при сохранении набора");
     }
-    setIsCreateOutfitFormVisible(false);
   };
 
   const handleCloseOutfitForm = () => {
@@ -157,8 +177,7 @@ export const Home: React.FC = () => {
           <OutfitList
             outfits={outfits}
             clothingItems={clothingItems}
-            onEditOutfit={handleEditOutfit}
-            onDeleteOutfit={handleDeleteOutfit}
+            onSelectOutfit={handleSelectOutfit}
           />
         </div>
       </main>
@@ -175,6 +194,7 @@ export const Home: React.FC = () => {
           clothingItems={clothingItems}
           onSubmit={handleCreateOutfit}
           onClose={handleCloseOutfitForm}
+          onDelete={editingOutfit ? handleDeleteOutfitFromForm : undefined}
           initialData={editingOutfit || undefined}
         />
       )}

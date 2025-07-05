@@ -5,15 +5,13 @@ import styles from './OutfitList.module.css';
 interface OutfitListProps {
   outfits: Outfit[];
   clothingItems: ClothingItem[];
-  onEditOutfit: (outfit: Outfit) => void;
-  onDeleteOutfit: (outfitId: string) => void;
+  onSelectOutfit: (outfit: Outfit) => void;
 }
 
 export const OutfitList: React.FC<OutfitListProps> = ({ 
   outfits, 
   clothingItems,
-  onEditOutfit,
-  onDeleteOutfit 
+  onSelectOutfit
 }) => {
   const getItemName = (itemId: string) => {
     const item = clothingItems.find(item => item.id === itemId);
@@ -25,13 +23,13 @@ export const OutfitList: React.FC<OutfitListProps> = ({
       <h2>Мои наборы</h2>
       <div className={styles.outfitsGrid}>
         {outfits.map((outfit) => (
-          <div key={outfit.id} className={styles.outfitCard}>
+          <div 
+            key={outfit.id} 
+            className={styles.outfitCard}
+            onClick={() => onSelectOutfit(outfit)}
+          >
             <div className={styles.outfitHeader}>
               <h3>{outfit.name}</h3>
-              <div className={styles.outfitActions}>
-                <button onClick={() => onEditOutfit(outfit)}>Редактировать</button>
-                <button onClick={() => onDeleteOutfit(outfit.id)}>Удалить</button>
-              </div>
             </div>
             <div className={styles.outfitItems}>
               {outfit.items.map((itemId) => (
