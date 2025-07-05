@@ -1,45 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import { ClothingItem, ClothingType } from '../../types/index';
-import styles from './AddClothingForm.module.css';
+import React, { useState, useEffect, useRef } from "react";
+import { ClothingItem, ClothingType } from "../../types/index";
+import styles from "./AddClothingForm.module.css";
 
 interface AddClothingFormProps {
-  onSubmit: (item: Omit<ClothingItem, 'id'>) => void;
+  onSubmit: (item: Omit<ClothingItem, "id">) => void;
   onClose: () => void;
   onDelete?: () => void;
   initialData?: ClothingItem;
 }
 
 const clothingTypes: ClothingType[] = [
-  'jeans',
-  'shorts',
-  'jacket',
-  'windbreaker',
-  'hoodie',
-  'sweater',
-  'pants',
-  'shoes',
-  'hat',
-  't-shirt',
-  'shirt'
+  "jeans",
+  "shorts",
+  "jacket",
+  "windbreaker",
+  "hoodie",
+  "sweater",
+  "pants",
+  "shoes",
+  "hat",
+  "t-shirt",
+  "shirt",
 ];
 
-export const AddClothingForm: React.FC<AddClothingFormProps> = ({ 
-  onSubmit, 
+export const AddClothingForm: React.FC<AddClothingFormProps> = ({
+  onSubmit,
   onClose,
   onDelete,
-  initialData 
+  initialData,
 }) => {
-  const [name, setName] = useState('');
-  const [type, setType] = useState<ClothingType>('t-shirt');
-  const [color, setColor] = useState('');
+  const [name, setName] = useState("");
+  const [type, setType] = useState<ClothingType>("t-shirt");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [color, setColor] = useState("");
 
   useEffect(() => {
     if (initialData) {
       setName(initialData.name);
       setType(initialData.type);
-      setColor(initialData.color || '');
+      setColor(initialData.color || "");
     }
   }, [initialData]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+    };
+  }, [imagePreviewUrl]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,9 +64,32 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({
   return (
     <div className={styles.modal}>
       <div className={styles.modalContent}>
-        <h2>{initialData ? 'Редактировать вещь' : 'Добавить вещь'}</h2>
+        <h2>{initialData ? "Редактировать вещь" : "Добавить вещь"}</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
+            <label htmlFor="image">Фото (опционально):</label>
+            <input
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setImageFile(file);
+                  const previewUrl = URL.createObjectURL(file);
+                  setImagePreviewUrl(previewUrl);
+                }
+              }}
+            />
+            {imagePreviewUrl && (
+              <div className={styles.imagePreview}>
+                <img
+                  src={imagePreviewUrl}
+                  alt="Превью"
+                  className={styles.previewImage}
+                />
+              </div>
+            )}
             <label htmlFor="name">Название:</label>
             <input
               id="name"
@@ -66,7 +99,7 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({
               required
             />
           </div>
-          
+
           <div className={styles.formGroup}>
             <label htmlFor="type">Тип:</label>
             <select
@@ -94,20 +127,24 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({
           </div>
 
           <div className={styles.formActions}>
-            <button type="button" onClick={onClose}>Отмена</button>
+            <button type="button" onClick={onClose}>
+              Отмена
+            </button>
             {initialData && onDelete && (
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className={styles.deleteButton}
                 onClick={onDelete}
               >
                 Удалить
               </button>
             )}
-            <button type="submit">{initialData ? 'Сохранить' : 'Добавить'}</button>
+            <button type="submit">
+              {initialData ? "Сохранить" : "Добавить"}
+            </button>
           </div>
         </form>
       </div>
     </div>
   );
-}; 
+};

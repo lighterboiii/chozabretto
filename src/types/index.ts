@@ -11,13 +11,14 @@ export type ClothingType =
   | 't-shirt'
   | 'shirt';
 
-export interface ClothingItem {
-  id: string;
-  name: string;
-  type: ClothingType;
-  color?: string;
-  imageUrl?: string;
-}
+  export interface ClothingItem {
+    id: string;
+    name: string;
+    type: ClothingType;
+    color?: string;
+    imageUrl?: string;
+  }
+  
 
 export interface Outfit {
   id: string;
