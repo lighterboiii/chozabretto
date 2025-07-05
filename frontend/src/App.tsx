@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Home } from './pages/Home';
-import { BottomNavigation } from './components/BottomNavigation';
+import { Home } from './pages/Home/Home';
+import { BottomNavigation } from './components/BottomNavigation/BottomNavigation';
 import './App.css';
 
 export const App: React.FC = () => {

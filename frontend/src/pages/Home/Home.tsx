@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { ClothingList } from "../../components/ClothingList";
-import { AddClothingForm } from "../../components/AddClothingForm";
+import { ClothingList } from "../../components/ClothingList/ClothingList";
+import { AddClothingForm } from "../../components/AddClothingForm/AddClothing";
 import { OutfitList } from "../../components/OutfitList";
-import { UserProfile } from "../../components/UserProfile";
+import { UserProfile } from "../../components/UserProfile/UserProfile";
 import { ClothingItem, Outfit, User } from "../../types/index";
 import styles from "./Home.module.css";
 import {
@@ -16,7 +16,7 @@ import {
   deleteOutfit,
   createOrUpdateUser,
 } from "../../api";
-import { CreateOutfitForm } from "../../components/CreateOutfitForm";
+import { CreateOutfitForm } from "../../components/CreateOutfitForm/CreateOutfit";
 import useTelegram from "../../hooks/useTelegram";
 
 interface HomeProps {
@@ -33,7 +33,7 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
     useState(false);
   const [editingOutfit, setEditingOutfit] = useState<Outfit | null>(null);
   const [isProfileVisible, setIsProfileVisible] = useState(false);
-
+  console.log(currentUser);
   const { user: telegramUser, isAvailable: isTelegramAvailable } = useTelegram();
 
   // Загрузка данных при старте
@@ -71,7 +71,7 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
     };
 
     loadUserData();
-    fetchClothingList().then(setClothingItems).catch(console.error);
+    fetchClothingList(currentUser?.telegramId.toString()).then(setClothingItems).catch(console.error);
     fetchOutfitsList().then(setOutfits).catch(console.error);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTelegramAvailable, telegramUser]);
@@ -111,7 +111,7 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
         );
         setEditingItem(null);
       } else {
-        const added = await createClothing(newItem, imageFile);
+        const added = await createClothing(newItem, imageFile, currentUser?.telegramId.toString());
         setClothingItems((items) => [...items, added]);
       }
       setIsAddFormVisible(false);

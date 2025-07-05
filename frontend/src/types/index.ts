@@ -17,6 +17,7 @@ export type ClothingType =
     type: ClothingType;
     color?: string;
     imageUrl?: string;
+    userId?: string;
   }
   
 

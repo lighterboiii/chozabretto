@@ -9,20 +9,22 @@ import { ClothingItem, Outfit, User } from './types/index'
 
 const API_BASE = "http://localhost:4000";
 
-export async function fetchClothingList(): Promise<ClothingItem[]> {
-  const res = await fetch(`${API_BASE}/clothing`);
+export async function fetchClothingList(userId?: string): Promise<ClothingItem[]> {
+  const url = userId ? `${API_BASE}/clothing?userId=${userId}` : `${API_BASE}/clothing`;
+  const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Ошибка загрузки списка: ${res.status}`);
   }
   return res.json();
 }
 
-export async function createClothing(item: Omit<ClothingItem, "id">, imageFile?: File): Promise<ClothingItem> {
+export async function createClothing(item: Omit<ClothingItem, "id">, imageFile?: File, userId?: string): Promise<ClothingItem> {
   const formData = new FormData();
   formData.append("name", item.name);
   formData.append("type", item.type);
   if (item.color) formData.append("color", item.color);
   if (imageFile) formData.append("image", imageFile);
+  if (userId) formData.append("userId", userId);
 
   const res = await fetch(`${API_BASE}/clothing`, {
     method: "POST",

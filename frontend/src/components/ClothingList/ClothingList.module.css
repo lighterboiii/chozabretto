@@ -1,47 +1,91 @@
 .clothingList {
-  background: #f5f5f5;
-  padding: 20px;
-  border-radius: 8px;
+  width: 100%;
 }
 
 .itemsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  padding: 10px 0;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
 }
 
 .clothingItem {
   background: white;
-  padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 15px;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .clothingItem:hover {
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .itemContent {
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
+}
+
+.itemContent img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 8px;
 }
 
 .itemType {
-  font-weight: bold;
-  margin-bottom: 5px;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: 500;
 }
 
 .itemName {
-  margin-bottom: 5px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin: 4px 0;
 }
 
 .itemColor {
-  color: #666;
-  font-size: 0.9em;
+  font-size: 12px;
+  color: #888;
+}
+
+/* Мобильные стили */
+@media (max-width: 768px) {
+  .itemsGrid {
+    gap: 12px;
+    padding: 8px 0;
+  }
+  
+  .clothingItem {
+    padding: 12px;
+  }
+  
+  .itemContent img {
+    height: 100px;
+  }
+  
+  .itemName {
+    font-size: 13px;
+  }
+  
+  .itemType {
+    font-size: 11px;
+  }
 }
 
 .deleteButton {

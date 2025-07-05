@@ -31,15 +31,15 @@ export const OutfitList: React.FC<OutfitListProps> = ({
   const getCoverGridClass = (itemCount: number) => {
     switch (itemCount) {
       case 1:
-        return styles.coverGrid1;
+        return styles.grid1;
       case 2:
-        return styles.coverGrid2;
+        return styles.grid2;
       case 3:
-        return styles.coverGrid3;
+        return styles.grid3;
       case 4:
-        return styles.coverGrid4;
+        return styles.grid4;
       default:
-        return styles.coverGrid4;
+        return styles.grid4;
     }
   };
 

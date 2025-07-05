@@ -18,7 +18,8 @@ db.exec(`
     name TEXT NOT NULL,
     type TEXT NOT NULL,
     color TEXT,
-    imageUrl TEXT
+    imageUrl TEXT,
+    userId TEXT
   )
 `);
 db.exec(`
