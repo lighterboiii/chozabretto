@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { ClothingList } from "../../components/ClothingList";
 import { AddClothingForm } from "../../components/AddClothingForm";
 import { OutfitList } from "../../components/OutfitList";
-import { ClothingItem, Outfit } from "../../types/index";
+import { UserProfile } from "../../components/UserProfile";
+import { ClothingItem, Outfit, User } from "../../types/index";
 import styles from "./Home.module.css";
 import {
   fetchClothingList,
@@ -13,20 +14,48 @@ import {
   createOutfit,
   updateOutfit,
   deleteOutfit,
+  getUserByTelegramId,
+  createOrUpdateUser,
 } from "../../api";
 import { CreateOutfitForm } from "../../components/CreateOutfitForm";
 
 export const Home: React.FC = () => {
   const [clothingItems, setClothingItems] = useState<ClothingItem[]>([]);
   const [outfits, setOutfits] = useState<Outfit[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAddFormVisible, setIsAddFormVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<ClothingItem | null>(null);
   const [isCreateOutfitFormVisible, setIsCreateOutfitFormVisible] =
     useState(false);
   const [editingOutfit, setEditingOutfit] = useState<Outfit | null>(null);
+  const [isProfileVisible, setIsProfileVisible] = useState(false);
 
   // Загрузка данных при старте
   useEffect(() => {
+    // Имитация получения Telegram ID (в реальном боте это будет приходить от Telegram)
+    const mockTelegramId = 123456789; // Замените на реальный ID из Telegram
+    
+    const loadUserData = async () => {
+      try {
+        // Пытаемся получить пользователя по Telegram ID
+        const user = await getUserByTelegramId(mockTelegramId);
+        setCurrentUser(user);
+      } catch (error) {
+        // Если пользователь не найден, создаем нового
+        try {
+          const newUser = await createOrUpdateUser({
+            telegramId: mockTelegramId,
+            firstName: 'Пользователь',
+            username: 'user_' + mockTelegramId
+          });
+          setCurrentUser(newUser);
+        } catch (createError) {
+          console.error('Ошибка создания пользователя:', createError);
+        }
+      }
+    };
+
+    loadUserData();
     fetchClothingList().then(setClothingItems).catch(console.error);
     fetchOutfitsList().then(setOutfits).catch(console.error);
   }, []);
@@ -129,10 +158,36 @@ export const Home: React.FC = () => {
     setEditingOutfit(null);
   };
 
+  const handleUpdateUser = (updatedUser: User) => {
+    setCurrentUser(updatedUser);
+  };
+
   return (
     <div className={styles.home}>
       <header className={styles.header}>
-        <h1>Мой гардероб</h1>
+        <div className={styles.headerContent}>
+          <h1>Мой гардероб</h1>
+          {currentUser && (
+            <div className={styles.userInfo}>
+              {currentUser.photoUrl && (
+                <img
+                  src={`http://localhost:4000${currentUser.photoUrl}`}
+                  alt="Фото профиля"
+                  className={styles.userPhoto}
+                />
+              )}
+              <span className={styles.userName}>
+                {currentUser.firstName || currentUser.username || 'Пользователь'}
+              </span>
+              <button
+                className={styles.profileButton}
+                onClick={() => setIsProfileVisible(true)}
+              >
+                Профиль
+              </button>
+            </div>
+          )}
+        </div>
       </header>
       <main className={styles.main}>
         <div className={styles.clothingSection}>
@@ -188,6 +243,13 @@ export const Home: React.FC = () => {
           onClose={handleCloseOutfitForm}
           onDelete={editingOutfit ? handleDeleteOutfitFromForm : undefined}
           initialData={editingOutfit || undefined}
+        />
+      )}
+      {isProfileVisible && currentUser && (
+        <UserProfile
+          user={currentUser}
+          onClose={() => setIsProfileVisible(false)}
+          onUpdate={handleUpdateUser}
         />
       )}
     </div>

@@ -25,4 +25,15 @@ export interface Outfit {
   name: string;
   items: string[];
   createdAt: string;
+  userId?: string;
+}
+
+export interface User {
+  id: string;
+  telegramId: number;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  photoUrl?: string;
+  createdAt: string;
 } 

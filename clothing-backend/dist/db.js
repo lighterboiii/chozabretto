@@ -26,6 +26,18 @@ db.exec(`
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     items TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    userId TEXT
+  )
+`);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    telegramId INTEGER UNIQUE NOT NULL,
+    firstName TEXT,
+    lastName TEXT,
+    username TEXT,
+    photoUrl TEXT,
     createdAt TEXT NOT NULL
   )
 `);

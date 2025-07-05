@@ -68,18 +68,121 @@ app.use('/uploads', express.static(UPLOAD_DIR));
  *   items: string[],
  *   createdAt: string
  * }
+ * 
+ * User:
+ * {
+ *   id: string,
+ *   telegramId: number,
+ *   firstName?: string,
+ *   lastName?: string,
+ *   username?: string,
+ *   photoUrl?: string,
+ *   createdAt: string
+ * }
  */
+
+// ===== API для пользователей =====
+
+// Получить пользователя по Telegram ID
+app.get('/users/telegram/:telegramId', (req, res) => {
+  const { telegramId } = req.params;
+  
+  const stmt = db.prepare('SELECT * FROM users WHERE telegramId = ?');
+  const user = stmt.get(telegramId);
+  
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+  
+  res.json(user);
+});
+
+// Создать или обновить пользователя
+app.post('/users', (req, res) => {
+  const { telegramId, firstName, lastName, username, photoUrl } = req.body;
+
+  if (!telegramId) {
+    res.status(400).json({ error: 'Telegram ID is required' });
+    return;
+  }
+
+  // Проверяем, существует ли пользователь
+  const selectStmt = db.prepare('SELECT * FROM users WHERE telegramId = ?');
+  const existingUser = selectStmt.get(telegramId);
+
+  if (existingUser) {
+    // Обновляем существующего пользователя
+    const updateStmt = db.prepare(
+      'UPDATE users SET firstName = ?, lastName = ?, username = ?, photoUrl = ? WHERE telegramId = ?'
+    );
+    updateStmt.run(firstName || null, lastName || null, username || null, photoUrl || null, telegramId);
+    
+    res.json({ ...existingUser, firstName, lastName, username, photoUrl });
+  } else {
+    // Создаем нового пользователя
+    const id = uuidv4();
+    const createdAt = new Date().toISOString();
+    
+    const insertStmt = db.prepare(
+      'INSERT INTO users (id, telegramId, firstName, lastName, username, photoUrl, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    );
+    insertStmt.run(id, telegramId, firstName || null, lastName || null, username || null, photoUrl || null, createdAt);
+    
+    res.status(201).json({ id, telegramId, firstName, lastName, username, photoUrl, createdAt });
+  }
+});
+
+// Обновить профиль пользователя
+app.put('/users/:id', upload.single('photo'), (req, res) => {
+  const { id } = req.params;
+  const { firstName, lastName, username } = req.body;
+
+  const selectStmt = db.prepare('SELECT * FROM users WHERE id = ?');
+  const user = selectStmt.get(id);
+  
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+
+  let photoUrl = user.photoUrl;
+  if (req.file) {
+    if (photoUrl) {
+      const oldPath = path.join(__dirname, '..', photoUrl);
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
+      }
+    }
+    photoUrl = `/uploads/${req.file.filename}`;
+  }
+
+  const updateStmt = db.prepare(
+    'UPDATE users SET firstName = ?, lastName = ?, username = ?, photoUrl = ? WHERE id = ?'
+  );
+  updateStmt.run(firstName || null, lastName || null, username || null, photoUrl, id);
+
+  res.json({ ...user, firstName, lastName, username, photoUrl });
+});
 
 // Получить список одежды
 app.get('/clothing', (req, res) => {
-  const stmt = db.prepare('SELECT * FROM clothing');
-  const items = stmt.all();
-  res.json(items);
+  const { userId } = req.query;
+  
+  if (userId) {
+    const stmt = db.prepare('SELECT * FROM clothing WHERE userId = ?');
+    const items = stmt.all(userId);
+    res.json(items);
+  } else {
+    const stmt = db.prepare('SELECT * FROM clothing');
+    const items = stmt.all();
+    res.json(items);
+  }
 });
 
 // Добавить новую вещь (с фото)
 app.post('/clothing', upload.single('image'), (req, res) => {
-  const { name, type, color } = req.body;
+  const { name, type, color, userId } = req.body;
 
   if (!name || !type) {
     res.status(400).json({ error: 'Name and type are required' });
@@ -98,11 +201,11 @@ app.post('/clothing', upload.single('image'), (req, res) => {
 
   const id = uuidv4();
   const stmt = db.prepare(
-    'INSERT INTO clothing (id, name, type, color, imageUrl) VALUES (?, ?, ?, ?, ?)'
+    'INSERT INTO clothing (id, name, type, color, imageUrl, userId) VALUES (?, ?, ?, ?, ?, ?)'
   );
-  stmt.run(id, name, type, color || null, imageUrl);
+  stmt.run(id, name, type, color || null, imageUrl, userId || null);
 
-  res.status(201).json({ id, name, type, color, imageUrl });
+  res.status(201).json({ id, name, type, color, imageUrl, userId });
 });
 
 
@@ -173,21 +276,35 @@ app.delete('/clothing/:id', (req, res) => {
 
 // Получить список наборов
 app.get('/outfits', (req, res) => {
-  const stmt = db.prepare('SELECT * FROM outfits ORDER BY createdAt DESC');
-  const outfits = stmt.all();
+  const { userId } = req.query;
   
-  // Преобразуем items из JSON строки в массив
-  const formattedOutfits = outfits.map(outfit => ({
-    ...outfit,
-    items: JSON.parse(outfit.items)
-  }));
-  
-  res.json(formattedOutfits);
+  let stmt;
+  if (userId) {
+    stmt = db.prepare('SELECT * FROM outfits WHERE userId = ? ORDER BY createdAt DESC');
+    const outfits = stmt.all(userId);
+    
+    const formattedOutfits = outfits.map(outfit => ({
+      ...outfit,
+      items: JSON.parse(outfit.items)
+    }));
+    
+    res.json(formattedOutfits);
+  } else {
+    stmt = db.prepare('SELECT * FROM outfits ORDER BY createdAt DESC');
+    const outfits = stmt.all();
+    
+    const formattedOutfits = outfits.map(outfit => ({
+      ...outfit,
+      items: JSON.parse(outfit.items)
+    }));
+    
+    res.json(formattedOutfits);
+  }
 });
 
 // Создать новый набор
 app.post('/outfits', (req, res) => {
-  const { name, items } = req.body;
+  const { name, items, userId } = req.body;
 
   if (!name || !items || !Array.isArray(items)) {
     res.status(400).json({ error: 'Name and items array are required' });
@@ -209,11 +326,11 @@ app.post('/outfits', (req, res) => {
   const itemsJson = JSON.stringify(items);
 
   const stmt = db.prepare(
-    'INSERT INTO outfits (id, name, items, createdAt) VALUES (?, ?, ?, ?)'
+    'INSERT INTO outfits (id, name, items, createdAt, userId) VALUES (?, ?, ?, ?, ?)'
   );
-  stmt.run(id, name, itemsJson, createdAt);
+  stmt.run(id, name, itemsJson, createdAt, userId || null);
 
-  res.status(201).json({ id, name, items, createdAt });
+  res.status(201).json({ id, name, items, createdAt, userId });
 });
 
 // Обновить набор по id
