@@ -23,7 +23,7 @@ export const ClothingList: React.FC<ClothingListProps> = ({
             <div className={styles.itemContent}>
               {item.imageUrl && (
                 <img
-                  src={item.imageUrl}
+                  src={`http://localhost:4000${item.imageUrl}`}
                   alt={item.name}
                   style={{
                     maxWidth: "100px",
