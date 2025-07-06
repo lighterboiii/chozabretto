@@ -52,8 +52,9 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 56px);
+  height: calc(100vh - 56px); /* Учитываем высоту BottomNavigation */
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Скрываем скроллбар для мобильных устройств */

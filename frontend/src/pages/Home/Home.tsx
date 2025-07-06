@@ -99,6 +99,7 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
     };
 
     loadUserData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInTelegram, telegramUser, hapticNotification, showAlert, currentUser]);
 
   // Загрузка одежды и наборов
@@ -132,6 +133,7 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
     } else {
       console.log('No currentUser.telegramId available');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.telegramId, showAlert]);
 
   const handleSelectOutfit = (outfit: Outfit) => {
@@ -367,11 +369,11 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
 
   return (
     <div className={styles.home}>
-      <header className={styles.header}>
+      {/* <header className={styles.header}>
         <div className={styles.headerContent}>
           <h1>Мой гардероб</h1>
         </div>
-      </header>
+      </header> */}
       <main className={styles.main}>
         {renderSection()}
       </main>
