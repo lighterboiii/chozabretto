@@ -34,6 +34,7 @@ export const CreateOutfitForm: React.FC<CreateOutfitFormProps> = ({
   const [name, setName] = useState('');
   const [selectedItems, setSelectedItems] = useState<ClothingItem[]>([]);
   const [selectedType, setSelectedType] = useState<ClothingType | 'all'>('all');
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -44,6 +45,14 @@ export const CreateOutfitForm: React.FC<CreateOutfitFormProps> = ({
       setSelectedItems(items);
     }
   }, [initialData, clothingItems]);
+
+  // Функция для плавного закрытия
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 300); // Время анимации
+  };
 
   const filteredItems = selectedType === 'all' 
     ? clothingItems 
@@ -65,12 +74,12 @@ export const CreateOutfitForm: React.FC<CreateOutfitFormProps> = ({
       name,
       items: selectedItems.map(item => item.id)
     });
-    onClose();
+    handleClose();
   };
 
   return (
-    <div className={styles.modal}>
-      <div className={styles.modalContent}>
+    <div className={`modal ${isClosing ? 'closing' : ''}`}>
+      <div className="modalContent">
         <h2>{initialData ? 'Редактировать набор' : 'Создать набор'}</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
@@ -115,7 +124,7 @@ export const CreateOutfitForm: React.FC<CreateOutfitFormProps> = ({
           </div>
 
           <div className={styles.formActions}>
-            <button type="button" onClick={onClose}>Отмена</button>
+            <button type="button" onClick={handleClose}>Отмена</button>
             {initialData && onDelete && (
               <button
                 type="button"

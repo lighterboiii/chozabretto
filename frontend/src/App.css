@@ -72,30 +72,121 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: 56px;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-end;
+  align-items: flex-end;
   z-index: 1000;
-  padding: 20px;
+  animation: modalFadeIn 0.3s ease-out;
 }
 
 .modalContent {
   background: white;
   padding: 20px;
-  border-radius: 12px;
+  border-radius: 12px 12px 0 0;
   width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
+  height: 100%;
+  flex: 1;
   overflow-y: auto;
+  transform: translateY(0);
+  animation: modalSlideUp 0.3s ease-out;
+  box-sizing: border-box;
+}
+
+/* Стили для скролла внутри модального окна */
+.modalContent::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modalContent::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.modalContent::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.modalContent::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.modalContent {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+/* Стили для заголовков в модальных окнах */
+.modalContent h2 {
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  flex-shrink: 0; /* Заголовок не сжимается */
+}
+
+/* Анимации для модальных окон */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Анимация закрытия */
+.modal.closing {
+  animation: modalFadeOut 0.3s ease-in;
+}
+
+.modal.closing .modalContent {
+  animation: modalSlideDown 0.3s ease-in;
+}
+
+@keyframes modalFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modalSlideDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
 }
 
 /* Адаптивные стили */
 @media (max-width: 768px) {
+  .modal {
+    bottom: 56px;
+  }
+  
   .modalContent {
-    margin: 20px;
-    max-width: calc(100% - 40px);
+    padding: 16px 16px 0 16px;
+    height: 100%; /* Занимает весь оставшийся экран */
+    border-radius: 0; /* Убираем скругление на мобильных */
+  }
+  
+  .modalContent h2 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
   }
 }
 

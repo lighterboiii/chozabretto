@@ -35,6 +35,7 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
   const [color, setColor] = useState("");
+  const [isClosing, setIsClosing] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,19 +50,27 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        handleClose();
       }
     };
 
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
+  }, []);
 
   // Обработка клика вне модального окна
   const handleModalClick = (e: React.MouseEvent) => {
     if (e.target === modalRef.current) {
-      onClose();
+      handleClose();
     }
+  };
+
+  // Функция для плавного закрытия
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 300); // Время анимации
   };
 
   useEffect(() => {
@@ -82,12 +91,12 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({
       },
       imageFile || undefined
     );    
-    onClose();
+    handleClose();
   };
 
   return (
-    <div className={styles.modal} ref={modalRef} onClick={handleModalClick}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+    <div className={`modal ${isClosing ? 'closing' : ''}`} ref={modalRef} onClick={handleModalClick}>
+      <div className="modalContent" onClick={(e) => e.stopPropagation()}>
         <h2>{initialData ? "Редактировать вещь" : "Добавить вещь"}</h2>
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.formGroup}>
@@ -151,7 +160,7 @@ export const AddClothingForm: React.FC<AddClothingFormProps> = ({
           </div>
 
           <div className={styles.formActions}>
-            <button type="button" onClick={onClose}>
+            <button type="button" onClick={handleClose}>
               Отмена
             </button>
             {initialData && onDelete && (
