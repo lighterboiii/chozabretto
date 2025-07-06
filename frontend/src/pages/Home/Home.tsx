@@ -38,18 +38,34 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
   
   const { 
     user: telegramUser, 
-    isAvailable: isTelegramAvailable, 
+    isAvailable: isTelegramAvailable,
+    isInTelegram,
     showAlert, 
     showConfirm, 
     hapticSelection,
     hapticNotification 
   } = useTelegramContext();
 
+  console.log('Home: isTelegramAvailable:', isTelegramAvailable);
+  console.log('Home: isInTelegram:', isInTelegram);
+  console.log('Home: telegramUser:', telegramUser);
+
   // Загрузка данных при старте
   useEffect(() => {
+    // Предотвращаем множественные вызовы
+    if (currentUser) {
+      console.log('User already exists, skipping creation');
+      setIsLoading(false);
+      return;
+    }
+
     const loadUserData = async () => {
       try {
-        if (isTelegramAvailable && telegramUser) {
+        console.log('Telegram available:', isTelegramAvailable);
+        console.log('Telegram user:', telegramUser);
+        
+        if (isInTelegram && telegramUser) {
+          console.log('Creating/updating user with Telegram data:', telegramUser);
           // Создаем или обновляем пользователя с данными из Telegram
           const user = await createOrUpdateUser({
             telegramId: telegramUser.id,
@@ -58,17 +74,20 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
             username: telegramUser.username,
             photoUrl: telegramUser.photo_url
           });
+          console.log('User created/updated:', user);
           setCurrentUser(user);
           hapticNotification('success');
         } else {
+          console.log('Using fallback user data (development mode)');
           // Fallback для разработки без Telegram
           const mockTelegramId = 172359056;
           const newUser = await createOrUpdateUser({
             telegramId: mockTelegramId,
             firstName: 'Пользователь',
             username: 'user_' + mockTelegramId,
-            photoUrl: currentUser?.photoUrl
+            photoUrl: undefined
           });
+          console.log('Fallback user created:', newUser);
           setCurrentUser(newUser);
         }
       } catch (error) {
@@ -80,24 +99,38 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
     };
 
     loadUserData();
-  }, [isTelegramAvailable, telegramUser, hapticNotification, showAlert, currentUser?.photoUrl]);
+  }, [isInTelegram, telegramUser, hapticNotification, showAlert, currentUser]);
 
   // Загрузка одежды и наборов
   useEffect(() => {
+    console.log('Clothing/outfits useEffect triggered');
+    console.log('currentUser:', currentUser);
+    console.log('currentUser?.telegramId:', currentUser?.telegramId);
+    
     if (currentUser?.telegramId) {
+      console.log('Loading clothing for user:', currentUser.telegramId);
       fetchClothingList(currentUser.telegramId.toString())
-        .then(setClothingItems)
+        .then((items) => {
+          console.log('Clothing loaded:', items);
+          setClothingItems(items);
+        })
         .catch(async (error) => {
           console.error('Ошибка загрузки одежды:', error);
           await showAlert('Ошибка при загрузке одежды');
         });
       
-      fetchOutfitsList()
-        .then(setOutfits)
+      console.log('Loading outfits for user:', currentUser.telegramId);
+      fetchOutfitsList(currentUser.telegramId.toString())
+        .then((outfits) => {
+          console.log('Outfits loaded:', outfits);
+          setOutfits(outfits);
+        })
         .catch(async (error) => {
           console.error('Ошибка загрузки наборов:', error);
           await showAlert('Ошибка при загрузке наборов');
         });
+    } else {
+      console.log('No currentUser.telegramId available');
     }
   }, [currentUser?.telegramId, showAlert]);
 
@@ -205,7 +238,7 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
         hapticNotification('success');
         await showAlert('Набор успешно обновлен');
       } else {
-        const created = await createOutfit(newOutfit);
+        const created = await createOutfit(newOutfit, currentUser?.telegramId.toString());
         setOutfits([...outfits, created]);
         hapticNotification('success');
         await showAlert('Набор успешно создан');

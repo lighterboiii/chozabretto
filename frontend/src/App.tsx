@@ -11,8 +11,17 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (isAvailable) {
       // Настраиваем цвета приложения в соответствии с темой Telegram
-      setHeaderColor(themeParams.header_bg_color || '#ffffff');
-      setBackgroundColor(themeParams.bg_color || '#ffffff');
+      // Проверяем, поддерживаются ли методы перед вызовом
+      try {
+        if (themeParams.header_bg_color) {
+          setHeaderColor(themeParams.header_bg_color);
+        }
+        if (themeParams.bg_color) {
+          setBackgroundColor(themeParams.bg_color);
+        }
+      } catch (error) {
+        console.log('Color setting not supported in this version');
+      }
     }
   }, [isAvailable, themeParams, setHeaderColor, setBackgroundColor]);
 

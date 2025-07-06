@@ -8,6 +8,7 @@ interface UseTelegramReturn {
   isAvailable: boolean;
   isReady: boolean;
   user: TelegramUser | null;
+  isInTelegram: boolean;
   themeParams: ThemeParams;
   colorScheme: 'light' | 'dark';
   
@@ -62,9 +63,17 @@ function useTelegram(): UseTelegramReturn {
   const [tg, setTg] = useState<TelegramWebApp | null>(null);
 
   useEffect(() => {
+    console.log('useTelegram: Checking for Telegram WebApp...');
+    console.log('window.Telegram:', window.Telegram);
+    
     const telegramWebApp = window.Telegram?.WebApp;
+    console.log('telegramWebApp:', telegramWebApp);
     
     if (telegramWebApp) {
+      console.log('Telegram WebApp found, initializing...');
+      console.log('User:', telegramWebApp.initDataUnsafe?.user);
+      console.log('Theme params:', telegramWebApp.themeParams);
+      
       setTg(telegramWebApp);
       
       // Initialize the Web App
@@ -169,19 +178,31 @@ function useTelegram(): UseTelegramReturn {
 
   const hapticImpact = useCallback((style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => {
     if (tg?.HapticFeedback) {
-      tg.HapticFeedback.impactOccurred(style);
+      try {
+        tg.HapticFeedback.impactOccurred(style);
+      } catch (error) {
+        console.log('HapticFeedback not supported');
+      }
     }
   }, [tg]);
 
   const hapticNotification = useCallback((type: 'error' | 'success' | 'warning') => {
     if (tg?.HapticFeedback) {
-      tg.HapticFeedback.notificationOccurred(type);
+      try {
+        tg.HapticFeedback.notificationOccurred(type);
+      } catch (error) {
+        console.log('HapticFeedback not supported');
+      }
     }
   }, [tg]);
 
   const hapticSelection = useCallback(() => {
     if (tg?.HapticFeedback) {
-      tg.HapticFeedback.selectionChanged();
+      try {
+        tg.HapticFeedback.selectionChanged();
+      } catch (error) {
+        console.log('HapticFeedback not supported');
+      }
     }
   }, [tg]);
 
@@ -209,7 +230,13 @@ function useTelegram(): UseTelegramReturn {
   const showAlert = useCallback(async (message: string): Promise<void> => {
     return new Promise((resolve) => {
       if (tg) {
-        tg.showAlert(message, resolve);
+        try {
+          tg.showAlert(message, resolve);
+        } catch (error) {
+          console.log('showAlert not supported, using fallback');
+          alert(message);
+          resolve();
+        }
       } else {
         alert(message);
         resolve();
@@ -220,7 +247,13 @@ function useTelegram(): UseTelegramReturn {
   const showConfirm = useCallback(async (message: string): Promise<boolean> => {
     return new Promise((resolve) => {
       if (tg) {
-        tg.showConfirm(message, resolve);
+        try {
+          tg.showConfirm(message, resolve);
+        } catch (error) {
+          console.log('showConfirm not supported, using fallback');
+          const confirmed = window.confirm(message);
+          resolve(confirmed);
+        }
       } else {
         const confirmed = window.confirm(message);
         resolve(confirmed);
@@ -230,17 +263,28 @@ function useTelegram(): UseTelegramReturn {
 
   const showPopup = useCallback((params: { title?: string; message: string; buttons?: Array<{ id?: string; type?: 'default' | 'ok' | 'close' | 'cancel' | 'destructive'; text: string }> }) => {
     if (tg) {
-      tg.showPopup(params);
+      try {
+        tg.showPopup(params);
+      } catch (error) {
+        console.log('showPopup not supported, using fallback');
+        alert(params.message);
+      }
     } else {
       alert(params.message);
     }
   }, [tg]);
 
+  const user = tg?.initDataUnsafe?.user || null;
+  const isInTelegram = !!tg?.initDataUnsafe?.user;
+  console.log('useTelegram: Current user:', user);
+  console.log('useTelegram: Is in Telegram:', isInTelegram);
+  
   return {
     // Core state
     isAvailable: !!tg,
     isReady,
-    user: tg?.initDataUnsafe?.user || null,
+    user,
+    isInTelegram,
     themeParams: tg?.themeParams || {},
     colorScheme: tg?.colorScheme || 'light',
     

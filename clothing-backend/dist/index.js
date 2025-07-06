@@ -146,6 +146,7 @@ app.put('/users/:id', upload.single('photo'), (req, res) => {
 app.get('/clothing', (req, res) => {
     const { userId } = req.query;
     if (userId) {
+        // userId здесь это telegramId пользователя
         const stmt = db_1.default.prepare('SELECT * FROM clothing WHERE userId = ?');
         const items = stmt.all(userId);
         res.json(items);
@@ -167,13 +168,18 @@ app.post('/clothing', upload.single('image'), (req, res) => {
         res.status(400).json({ error: 'Invalid clothing type' });
         return;
     }
+    // userId здесь это telegramId пользователя
+    if (!userId) {
+        res.status(400).json({ error: 'User ID is required' });
+        return;
+    }
     let imageUrl = null;
     if (req.file) {
         imageUrl = `/uploads/${req.file.filename}`;
     }
     const id = (0, uuid_1.v4)();
     const stmt = db_1.default.prepare('INSERT INTO clothing (id, name, type, color, imageUrl, userId) VALUES (?, ?, ?, ?, ?, ?)');
-    stmt.run(id, name, type, color || null, imageUrl, userId || null);
+    stmt.run(id, name, type, color || null, imageUrl, userId);
     res.status(201).json({ id, name, type, color, imageUrl, userId });
 });
 // Обновить вещь по id (с фото)
@@ -230,6 +236,7 @@ app.get('/outfits', (req, res) => {
     const { userId } = req.query;
     let stmt;
     if (userId) {
+        // userId здесь это telegramId пользователя
         stmt = db_1.default.prepare('SELECT * FROM outfits WHERE userId = ? ORDER BY createdAt DESC');
         const outfits = stmt.all(userId);
         const formattedOutfits = outfits.map(outfit => ({
@@ -255,12 +262,17 @@ app.post('/outfits', (req, res) => {
         res.status(400).json({ error: 'Name and items array are required' });
         return;
     }
-    // Проверяем, что все items существуют в базе
-    const itemsCheckStmt = db_1.default.prepare('SELECT id FROM clothing WHERE id = ?');
+    // userId здесь это telegramId пользователя
+    if (!userId) {
+        res.status(400).json({ error: 'User ID is required' });
+        return;
+    }
+    // Проверяем, что все items существуют в базе и принадлежат пользователю
+    const itemsCheckStmt = db_1.default.prepare('SELECT id FROM clothing WHERE id = ? AND userId = ?');
     for (const itemId of items) {
-        const item = itemsCheckStmt.get(itemId);
+        const item = itemsCheckStmt.get(itemId, userId);
         if (!item) {
-            res.status(400).json({ error: `Clothing item with id ${itemId} not found` });
+            res.status(400).json({ error: `Clothing item with id ${itemId} not found or doesn't belong to user` });
             return;
         }
     }
@@ -268,7 +280,7 @@ app.post('/outfits', (req, res) => {
     const createdAt = new Date().toISOString();
     const itemsJson = JSON.stringify(items);
     const stmt = db_1.default.prepare('INSERT INTO outfits (id, name, items, createdAt, userId) VALUES (?, ?, ?, ?, ?)');
-    stmt.run(id, name, itemsJson, createdAt, userId || null);
+    stmt.run(id, name, itemsJson, createdAt, userId);
     res.status(201).json({ id, name, items, createdAt, userId });
 });
 // Обновить набор по id

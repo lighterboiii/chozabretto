@@ -11,11 +11,15 @@ const API_BASE = "http://localhost:4000";
 
 export async function fetchClothingList(userId?: string): Promise<ClothingItem[]> {
   const url = userId ? `${API_BASE}/clothing?userId=${userId}` : `${API_BASE}/clothing`;
+  console.log('Fetching clothing from:', url);
   const res = await fetch(url);
+  console.log('Clothing response status:', res.status);
   if (!res.ok) {
     throw new Error(`Ошибка загрузки списка: ${res.status}`);
   }
-  return res.json();
+  const data = await res.json();
+  console.log('Clothing data:', data);
+  return data;
 }
 
 export async function createClothing(item: Omit<ClothingItem, "id">, imageFile?: File, userId?: string): Promise<ClothingItem> {
@@ -69,27 +73,38 @@ export async function deleteClothing(id: string): Promise<void> {
 }
 
 // API функции для наборов
-export async function fetchOutfitsList(): Promise<Outfit[]> {
-  const res = await fetch(`${API_BASE}/outfits`);
+export async function fetchOutfitsList(userId?: string): Promise<Outfit[]> {
+  const url = userId ? `${API_BASE}/outfits?userId=${userId}` : `${API_BASE}/outfits`;
+  console.log('Fetching outfits from:', url);
+  const res = await fetch(url);
+  console.log('Outfits response status:', res.status);
   if (!res.ok) {
     throw new Error(`Ошибка загрузки наборов: ${res.status}`);
   }
-  return res.json();
+  const data = await res.json();
+  console.log('Outfits data:', data);
+  return data;
 }
 
-export async function createOutfit(outfit: Omit<Outfit, "id" | "createdAt">): Promise<Outfit> {
+export async function createOutfit(outfit: Omit<Outfit, "id" | "createdAt">, userId?: string): Promise<Outfit> {
+  const outfitData = userId ? { ...outfit, userId } : outfit;
+  console.log('Creating outfit with data:', outfitData);
+  
   const res = await fetch(`${API_BASE}/outfits`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(outfit),
+    body: JSON.stringify(outfitData),
   });
 
+  console.log('Outfit creation response status:', res.status);
   if (!res.ok) {
     throw new Error(`Ошибка создания набора: ${res.status}`);
   }
-  return res.json();
+  const data = await res.json();
+  console.log('Outfit created successfully:', data);
+  return data;
 }
 
 export async function updateOutfit(id: string, outfit: Omit<Outfit, "id" | "createdAt">): Promise<Outfit> {
@@ -124,6 +139,7 @@ export async function createOrUpdateUser(userData: {
   username?: string;
   photoUrl?: string;
 }): Promise<User> {
+  console.log('Creating/updating user with data:', userData);
   const res = await fetch(`${API_BASE}/users`, {
     method: "POST",
     headers: {
@@ -132,10 +148,13 @@ export async function createOrUpdateUser(userData: {
     body: JSON.stringify(userData),
   });
 
+  console.log('User creation response status:', res.status);
   if (!res.ok) {
     throw new Error(`Ошибка сохранения пользователя: ${res.status}`);
   }
-  return res.json();
+  const data = await res.json();
+  console.log('User creation response data:', data);
+  return data;
 }
 
 export async function updateUserProfile(
