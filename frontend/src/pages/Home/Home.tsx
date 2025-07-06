@@ -369,11 +369,6 @@ export const Home: React.FC<HomeProps> = ({ currentSection }) => {
 
   return (
     <div className={styles.home}>
-      {/* <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <h1>Мой гардероб</h1>
-        </div>
-      </header> */}
       <main className={styles.main}>
         {renderSection()}
       </main>

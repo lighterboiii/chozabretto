@@ -1,6 +1,6 @@
 import React from "react";
 import { ClothingItem } from "../../types/index";
-import styles from "./ClothingList.module.css";
+import { ItemList } from "../ItemList/ItemList";
 
 interface ClothingListProps {
   items: ClothingItem[];
@@ -12,35 +12,10 @@ export const ClothingList: React.FC<ClothingListProps> = ({
   onSelectItem,
 }) => {
   return (
-    <div className={styles.clothingList}>
-      <div className={styles.itemsGrid}>
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className={styles.clothingItem}
-            onClick={() => onSelectItem(item)}
-          >
-            <div className={styles.itemContent}>
-              {item.imageUrl && (
-                <img
-                  src={`http://localhost:4000${item.imageUrl}`}
-                  alt={item.name}
-                  style={{
-                    maxWidth: "100px",
-                    maxHeight: "100px",
-                    objectFit: "cover",
-                  }}
-                />
-              )}
-              <div className={styles.itemType}>{item.type}</div>
-              <div className={styles.itemName}>{item.name}</div>
-              {item.color && (
-                <div className={styles.itemColor}>{item.color}</div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    <ItemList
+      type="clothing"
+      clothingItems={items}
+      onSelectClothing={onSelectItem}
+    />
   );
 };
