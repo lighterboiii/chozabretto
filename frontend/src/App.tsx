@@ -10,8 +10,6 @@ const AppContent: React.FC = () => {
 
   useEffect(() => {
     if (isAvailable) {
-      // Настраиваем цвета приложения в соответствии с темой Telegram
-      // Проверяем, поддерживаются ли методы перед вызовом
       try {
         if (themeParams.header_bg_color) {
           setHeaderColor(themeParams.header_bg_color);
@@ -27,7 +25,7 @@ const AppContent: React.FC = () => {
 
   const handleSectionChange = (section: 'clothing' | 'outfits' | 'profile') => {
     setCurrentSection(section);
-    hapticSelection(); // Тактильный отклик при смене раздела
+    hapticSelection();
   };
 
   return (
